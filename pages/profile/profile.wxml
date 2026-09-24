@@ -186,7 +186,7 @@
           </view>
           <image class="pf-qr-img" wx:if="{{qrUrl}}" src="{{qrUrl}}" mode="aspectFit" show-menu-by-longpress />
           <view class="pf-qr-ph" wx:else></view>
-          <text class="pf-qr-hint">长按图片可保存</text>
+          <text class="pf-qr-hint">长按识别 / 保存图片</text>
           <text class="pf-qr-sub">教程 · 案例 · 考据</text>
         </view>
         <view class="pf-qr">
@@ -196,10 +196,33 @@
           </view>
           <image class="pf-qr-img" wx:if="{{wxQrUrl}}" src="{{wxQrUrl}}" mode="aspectFit" show-menu-by-longpress />
           <view class="pf-qr-ph" wx:else></view>
-          <text class="pf-qr-hint">长按图片可保存</text>
-          <text class="pf-qr-sub">命理交流 · 深度咨询</text>
+          <text class="pf-qr-hint">长按识别 / 保存图片</text>
+          <text class="pf-qr-sub">传统文化交流</text>
         </view>
       </view>
+    </view>
+
+    <!-- 公众号导流（T-6.2）：同主体公众号已确认。组件只在满足展示条件时出现
+         （用户未关注且从可带关注的场景进入），不满足时渲染为 0 高度，不会留下空位 -->
+    <official-account class="pf-official"></official-account>
+
+    <!-- 在线客服（T-6.3）：走微信客服会话，需在后台「客服」里配置客服人员后可用 -->
+    <view class="pf-card pf-contact-card">
+      <button class="pf-contact" open-type="contact" session-from="profile-about" hover-class="pf-contact-hover">
+        <ui-icon name="message-circle" color="#b45309" size="{{30}}" />
+        <text class="pf-contact-text">在线客服</text>
+        <ui-icon name="chevron-right" color="#d6d3d1" size="{{24}}" />
+      </button>
+      <text class="pf-contact-hint">使用中遇到问题，或想反馈命例内容，都可以直接找我们</text>
+    </view>
+
+    <!-- 使用说明（T-6.1）：定位是传统历法工具，这句同时给用户与审核看 -->
+    <view class="pf-card pf-notice">
+      <view class="pf-notice-head">
+        <ui-icon name="info" color="#a8a29e" size="{{26}}" />
+        <text class="pf-notice-title">使用说明</text>
+      </view>
+      <text class="pf-notice-text">本小程序提供传统历法与四柱排盘的记录、查阅工具，所载内容均引自公开古籍与用户分享，仅供传统文化研究与参考，不构成任何决定或建议。</text>
     </view>
 
     <view class="pf-blocks">

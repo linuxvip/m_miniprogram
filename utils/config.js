@@ -19,7 +19,8 @@ export const CACHE_TTL = 60 * 60 * 1000
 /** 与网页端 ConfigContext 的 defaults 逐字段一致 */
 export const DEFAULT_CONFIG = {
   site_name: '命海拾遗',
-  site_subtitle: '探索八字玄机 · 洞悉人生运势',
+  // T-6.1 合规：不用「玄机 / 运势 / 预测」这类表述，统一为工具口径
+  site_subtitle: '传统历法 · 四柱排盘工具',
   footer_text: 'Ming Hai Shi Yi · 命海拾遗',
   qrcode_url: '/qrcode.jpg',
   avatar_url: '/avatar.jpg',

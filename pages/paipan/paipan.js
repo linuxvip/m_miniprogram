@@ -13,6 +13,7 @@ import { buildChartQuery } from '../../utils/chartRoute.js'
 import {
   emptyDirect, solarToLunar, lunarToSolar, formatSolar, formatLunar
 } from '../../utils/calendar.js'
+import { paipanShare, timelineOf } from '../../utils/share.js'
 
 const CLOCK_TICK_MS = 1000
 
@@ -314,5 +315,16 @@ Page({
     })
     this.persist()
     wx.navigateTo({ url: `/pages/chart/chart?${query}` })
+  },
+
+  /* ---------------- 分享（T-6.9） ---------------- */
+
+  /** 输入页的分享是「工具推荐」，不带用户填的内容（姓名 / 生辰不上卡） */
+  onShareAppMessage() {
+    return paipanShare()
+  },
+
+  onShareTimeline() {
+    return timelineOf(paipanShare())
   }
 })

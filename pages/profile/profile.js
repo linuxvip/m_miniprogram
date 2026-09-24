@@ -24,6 +24,7 @@ import {
 } from '../../utils/profile.js'
 import { loadPreferences, savePreferences, TIMEZONE_OPTIONS } from '../../utils/preferences.js'
 import { DEFAULT_CONFIG, assetUrl } from '../../utils/config.js'
+import { profileShare, timelineOf } from '../../utils/share.js'
 
 const SYNC_DEBOUNCE_MS = 600
 
@@ -346,5 +347,16 @@ Page({
 
   onCopyFooter() {
     wx.setClipboardData({ data: this.data.footerText })
+  },
+
+  /* ---------------- 分享（T-6.9） ---------------- */
+
+  /** 「我的」页没有可分享的内容，分享的是这个工具本身（标题用站点名兜底） */
+  onShareAppMessage() {
+    return profileShare()
+  },
+
+  onShareTimeline() {
+    return timelineOf(profileShare())
   }
 })

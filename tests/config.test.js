@@ -31,7 +31,7 @@ const makeFetcher = (handler) => {
 
 const NETWORK_BODY = {
   site_name: '命海拾遗',
-  site_subtitle: '探索八字玄机 · 洞悉人生运势',
+  site_subtitle: '传统历法 · 四柱排盘工具',
   footer_text: 'Ming Hai Shi Yi · 命海拾遗',
   qrcode_url: '/qrcode.jpg',
   avatar_url: '/avatar.jpg',

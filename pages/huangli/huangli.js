@@ -13,6 +13,7 @@ import {
   nowInput, shiftMonth, withYearMonth, withBranchHour, buildHeader, buildMonth,
   backToToday, dayKey, yearKeyOf
 } from '../../utils/almanac.js'
+import { huangliShare, huangliInputFrom, timelineOf } from '../../utils/share.js'
 
 const TODAY_REFRESH_MS = 60000
 
@@ -32,8 +33,9 @@ Page({
     todayKey: ''
   },
 
-  onLoad() {
-    this.refresh(nowInput())
+  onLoad(options) {
+    // 分享链接会带 y/m/d（T-6.9）：参数不合法就退回今天，不整份丢掉
+    this.refresh(huangliInputFrom(options, nowInput()))
     // 页脚文案取站点配置（T-0.9），与网页端 `{config.footer_text}` 一致；
     // 配置没来 / 拉取失败时继续用 almanac 里的内置默认值
     const app = getApp()
@@ -154,5 +156,16 @@ Page({
     this.setData({ showMonth: false }, () => {
       this.refresh(withYearMonth(this.data.input, this.data.input.year, month))
     })
+  },
+
+  /* ---------------- 分享（T-6.9） ---------------- */
+
+  /** 把当前选中的那一天分享出去，对方打开就是同一张黄历 */
+  onShareAppMessage() {
+    return huangliShare(this.data.input)
+  },
+
+  onShareTimeline() {
+    return timelineOf(huangliShare(this.data.input))
   }
 })

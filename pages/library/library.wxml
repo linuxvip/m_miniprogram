@@ -126,6 +126,7 @@
     </view>
     <view class="lib-end" wx:else>
       <text class="lib-end-text">已到底部 · 共 {{count}} 条</text>
+      <text class="lib-note">命例文本引自公开古籍与用户分享，仅供传统文化研究与参考</text>
     </view>
   </view>
 </view>

@@ -17,6 +17,7 @@ import { onAuthChange, ensureLogin, isLoggedIn, currentUser } from '../../utils/
 import {
   favoriteIdsOf, withFavorite, markFavorites, favoriteToast
 } from '../../utils/account.js'
+import { libraryShare, timelineOf } from '../../utils/share.js'
 import {
   ALL, GENDER_OPTIONS, PILLAR_KEYS, PILLAR_LABELS,
   defaultFilters, buildCaseQuery, pageFromNext, normalizeCase, filtersActive,
@@ -358,5 +359,19 @@ Page({
       this._timer = null
       fn()
     }, DEBOUNCE_MS)
+  },
+
+  /* ---------------- 分享（T-6.9） ---------------- */
+
+  /**
+   * 只分享入口，不带筛选条件：命例库的价值在「能按四柱检索」，
+   * 把当前的筛选组合塞进链接，对方打开看到一堆空结果反而是劝退。
+   */
+  onShareAppMessage() {
+    return libraryShare()
+  },
+
+  onShareTimeline() {
+    return timelineOf(libraryShare())
   }
 })

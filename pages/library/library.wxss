@@ -200,6 +200,16 @@
   color: var(--stone-400);
 }
 
+/* 底部说明（T-6.1 合规）：列表读到底才出现，不占视线 */
+.lib-note {
+  display: block;
+  margin-top: 10rpx;
+  font-size: var(--fs-xs);
+  color: var(--stone-400);
+  line-height: 1.7;
+  text-align: center;
+}
+
 /* 收藏按钮（T-3.6） */
 
 .lib-fav {
