@@ -248,7 +248,7 @@
       </view>
     </view>
 
-    <view class="pf-footer" bindtap="onCopyFooter">
+    <view class="pf-footer">
       <text class="pf-footer-text">{{footerText}}</text>
     </view>
   </block>

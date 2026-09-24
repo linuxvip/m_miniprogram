@@ -345,10 +345,6 @@ Page({
     this.setData({ avatarFailed: true })
   },
 
-  onCopyFooter() {
-    wx.setClipboardData({ data: this.data.footerText })
-  },
-
   /* ---------------- 分享（T-6.9） ---------------- */
 
   /** 「我的」页没有可分享的内容，分享的是这个工具本身（标题用站点名兜底） */
