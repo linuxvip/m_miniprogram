@@ -1,99 +1,58 @@
-.field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 28rpx 0;
-  border-bottom: 1rpx solid #f0efed;
-}
+/* 排盘页专有样式。通用色值/字号/圆角一律取自 app.wxss 的变量，此处不再写死颜色。 */
 
-.field-label {
-  color: #78716c;
-  font-size: 28rpx;
-}
-
-.picker {
-  min-width: 320rpx;
-  padding: 12rpx 24rpx;
-  background: #fafaf9;
-  border: 1rpx solid #e7e5e4;
-  border-radius: 999rpx;
-  text-align: center;
-  font-size: 28rpx;
-  color: #292524;
-}
-
-.radios {
-  display: flex;
-  gap: 32rpx;
-}
-
-.radio {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  font-size: 28rpx;
-  color: #292524;
-}
-
-.error {
-  margin-top: 24rpx;
-  padding: 24rpx 28rpx;
-  background: #fef2f2;
-  border: 1rpx solid #fecaca;
-  border-radius: 20rpx;
-  color: #b91c1c;
-  font-size: 26rpx;
-}
-
-.card + .card {
-  margin-top: 24rpx;
-}
-
+/* ---------- 四柱表 ---------- */
 .pillars {
   display: flex;
-  gap: 12rpx;
-  margin-top: 28rpx;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
 }
 
 .pillar {
   flex: 1;
   min-width: 0;
-  padding: 20rpx 6rpx;
-  background: #fafaf9;
-  border: 1rpx solid #f0efed;
-  border-radius: 16rpx;
+  padding: var(--sp-3) var(--sp-1);
+  background: var(--stone-50);
+  border: 1rpx solid var(--line);
+  border-radius: var(--radius-sm);
   text-align: center;
 }
 
 .pillar-label {
   display: block;
-  color: #a8a29e;
-  font-size: 22rpx;
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
 }
 
 .ganzhi {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 12rpx 0 16rpx;
+  margin: var(--sp-2) 0 var(--sp-3);
 }
 
+/* 干支大字：颜色由 .el-* 控制，这里只管字型 */
 .gz {
-  font-size: 44rpx;
+  font-size: 48rpx;
   font-weight: 600;
   line-height: 1.3;
 }
 
 .cell {
   display: block;
-  color: #57534e;
-  font-size: 22rpx;
+  color: var(--stone-600);
+  font-size: var(--fs-xs);
   line-height: 1.6;
   white-space: nowrap;
 }
 
 .cell-row {
-  margin-top: 8rpx;
+  margin-top: var(--sp-1);
+}
+
+.cell-key {
+  display: block;
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
 }
 
 .stack {
@@ -102,93 +61,31 @@
   align-items: center;
 }
 
-.cell-key {
-  display: block;
-  color: #a8a29e;
-  font-size: 20rpx;
-}
-
-.el-mu { color: #047857; }
-.el-huo { color: #be123c; }
-.el-tu { color: #b45309; }
-.el-jin { color: #334155; }
-.el-shui { color: #0369a1; }
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 24rpx;
-  padding: 22rpx 0;
-  border-bottom: 1rpx solid #f0efed;
-}
-
-.row:last-child {
-  border-bottom: none;
-}
-
-.row-key {
-  flex-shrink: 0;
-  color: #78716c;
-  font-size: 26rpx;
-}
-
-.row-val {
-  text-align: right;
-  color: #292524;
-  font-size: 26rpx;
-  word-break: break-all;
-}
-
+/* ---------- 五行统计 ---------- */
 .wuxing {
   display: flex;
-  gap: 16rpx;
-  margin: 28rpx 0 8rpx;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0 var(--sp-1);
 }
 
 .wx-item {
   flex: 1;
-  padding: 20rpx 0;
-  background: #fafaf9;
-  border: 1rpx solid #f0efed;
-  border-radius: 16rpx;
+  padding: var(--sp-3) 0;
+  background: var(--stone-50);
+  border: 1rpx solid var(--line);
+  border-radius: var(--radius-sm);
   text-align: center;
 }
 
 .wx-el {
   display: block;
-  font-size: 34rpx;
+  font-size: var(--fs-lg);
   font-weight: 600;
 }
 
 .wx-count {
   display: block;
   margin-top: 6rpx;
-  color: #78716c;
-  font-size: 24rpx;
-}
-
-.tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-  margin-top: 24rpx;
-}
-
-.tag {
-  padding: 10rpx 20rpx;
-  background: #fffbeb;
-  border: 1rpx solid #fde68a;
-  border-radius: 999rpx;
-}
-
-.tag-name {
-  color: #92400e;
-  font-size: 24rpx;
-}
-
-.tag-pos {
-  margin-left: 8rpx;
-  color: #a8a29e;
-  font-size: 20rpx;
+  color: var(--stone-500);
+  font-size: var(--fs-sm);
 }

@@ -34,7 +34,7 @@
     <button class="btn primary block" bindtap="calculate">开始排盘</button>
   </view>
 
-  <view class="error" wx:if="{{error}}">{{error}}</view>
+  <view class="alert mt-3" wx:if="{{error}}">{{error}}</view>
 
   <block wx:if="{{result}}">
     <view class="card">

@@ -1,56 +1,405 @@
+/* =========================================================================
+ * 命海拾遗 · 设计变量体系（T-0.2）
+ *
+ * 色值不是拍脑袋定的，逐项取自网页端（minghaishiyi_frontend）实际使用的
+ * Tailwind 类与自定义色，换算成小程序可直接用的 CSS 变量。
+ * 改一处颜色，全局生效——不要再在页面里写死色值。
+ * ========================================================================= */
+
 page {
-  background: #f5f5f4;
-  color: #292524;
-  font-size: 28rpx;
+  /* ---------- 石色阶（stone）：网页端正文字色与背景的主力 ---------- */
+  --stone-50: #fafaf9;
+  --stone-100: #f5f5f4;
+  --stone-200: #e7e5e4;
+  --stone-300: #d6d3d1;
+  --stone-400: #a8a29e;
+  --stone-500: #78716c;
+  --stone-600: #57534e;
+  --stone-700: #44403c;
+  --stone-800: #292524;
+  --stone-900: #1c1917;
+
+  /* ---------- 品牌墨色与纸色（网页端自定义值）---------- */
+  --ink: #2b2320;          /* 主按钮底色、标题墨色 */
+  --paper: #fdfcf8;        /* 卡片纸色 / 弹层底 */
+  --paper-warm: #faf8f4;   /* 命盘信息头 */
+  --paper-deep: #f2f0e9;   /* 黄历顶部信息栏 */
+  --line: #f0efed;         /* 极浅分隔线（比 stone-200 更淡） */
+
+  /* ---------- 品牌驼色 / 琥珀色（选中态与强调）---------- */
+  --brand: #b39b7d;        /* 选中 Tab、开关打开态 */
+  --brand-border: #e6d8c3;
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-200: #fde68a;
+  --amber-500: #f59e0b;
+  --amber-700: #b45309;
+  --amber-800: #92400e;
+  --amber-900: #78350f;
+
+  /* ---------- 黄历专用深红（与排盘页琥珀色系不同，勿混用）---------- */
+  --cinnabar: #8a1a1b;
+
+  /* ---------- 五行色：网页端 ELEMENT_COLORS 的 hex 等价 ---------- */
+  --wx-mu: #064e3b;      --wx-mu-bg: #d1fae5;      --wx-mu-bd: #6ee7b7;   /* emerald */
+  --wx-huo: #881337;     --wx-huo-bg: #ffe4e6;     --wx-huo-bd: #fda4af;  /* rose    */
+  --wx-tu: #78350f;      --wx-tu-bg: #fef3c7;      --wx-tu-bd: #fcd34d;   /* amber   */
+  --wx-jin: #1e293b;     --wx-jin-bg: #e2e8f0;     --wx-jin-bd: #94a3b8;  /* slate   */
+  --wx-shui: #0c4a6e;    --wx-shui-bg: #e0f2fe;    --wx-shui-bd: #7dd3fc; /* sky     */
+  --wx-none: #292524;    --wx-none-bg: #f5f5f4;    --wx-none-bd: #d6d3d1; /* stone   */
+
+  /* ---------- 语义色 ---------- */
+  --danger-bg: #fef2f2;
+  --danger-bd: #fecaca;
+  --danger: #b91c1c;
+  --success-bg: #ecfdf5;
+  --success-bd: #a7f3d0;
+  --success: #047857;
+
+  /* ---------- 字号（网页端 px × 2 = rpx）---------- */
+  --fs-xs: 20rpx;      /* 10px */
+  --fs-sm: 24rpx;      /* 12px */
+  --fs-base: 28rpx;    /* 14px */
+  --fs-md: 32rpx;      /* 16px */
+  --fs-lg: 36rpx;      /* 18px */
+  --fs-xl: 40rpx;      /* 20px */
+  --fs-2xl: 48rpx;     /* 24px */
+  --fs-3xl: 64rpx;     /* 32px */
+
+  /* ---------- 圆角 ---------- */
+  --radius-sm: 16rpx;
+  --radius-md: 24rpx;   /* rounded-xl */
+  --radius-lg: 32rpx;   /* rounded-2xl */
+  --radius-xl: 40rpx;
+  --radius-2xl: 64rpx;  /* rounded-[2rem]，大卡片 */
+  --radius-full: 999rpx;
+
+  /* ---------- 间距 ---------- */
+  --sp-1: 8rpx;
+  --sp-2: 16rpx;
+  --sp-3: 24rpx;
+  --sp-4: 32rpx;
+  --sp-5: 40rpx;
+  --sp-6: 48rpx;
+  --sp-8: 64rpx;
+
+  /* ---------- 阴影 ---------- */
+  --shadow-sm: 0 4rpx 12rpx rgba(41, 37, 36, 0.04);
+  --shadow-md: 0 8rpx 32rpx rgba(41, 37, 36, 0.06);
+  --shadow-xl: 0 20rpx 50rpx -10rpx rgba(41, 37, 36, 0.12);
+
+  /* ---------- 基础排版 ---------- */
+  background: var(--stone-100);
+  color: var(--stone-800);
+  font-size: var(--fs-base);
   line-height: 1.6;
+  /* 字体：无法自行托管字体文件，改用系统衬线，只保证风格接近 */
   font-family: -apple-system, "PingFang SC", "Songti SC", "Noto Serif SC", serif;
 }
 
+/* =========================================================================
+ * 基础容器与文字
+ * ========================================================================= */
+
 .page {
-  padding: 32rpx;
+  padding: var(--sp-4);
 }
 
 .card {
   background: #ffffff;
-  border-radius: 24rpx;
-  padding: 40rpx 32rpx;
-  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid var(--stone-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5) var(--sp-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.card + .card {
+  margin-top: var(--sp-3);
+}
+
+/* 大卡片：对应网页端 rounded-[2rem] */
+.card-lg {
+  border-radius: var(--radius-2xl);
+  padding: var(--sp-5);
+  box-shadow: var(--shadow-xl);
 }
 
 .title {
   display: block;
-  font-size: 40rpx;
+  font-size: var(--fs-xl);
   font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 1rpx;
+}
+
+/* 区块小标题：左侧驼色竖条，对应网页端 SectionTitle */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--stone-500);
+  letter-spacing: 2rpx;
+}
+
+.section-title::before {
+  content: "";
+  width: 6rpx;
+  height: 26rpx;
+  border-radius: var(--radius-full);
+  background: var(--amber-700);
 }
 
 .desc {
   display: block;
-  margin-top: 12rpx;
-  color: #8a8f99;
-  font-size: 26rpx;
+  margin-top: var(--sp-2);
+  color: var(--stone-400);
+  font-size: var(--fs-sm);
 }
 
+.muted {
+  color: var(--stone-400);
+}
+
+.divider {
+  height: 1rpx;
+  margin: var(--sp-3) 0;
+  background: var(--line);
+}
+
+/* 左右两栏信息行 */
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row-key {
+  flex-shrink: 0;
+  color: var(--stone-500);
+  font-size: var(--fs-base);
+}
+
+.row-val {
+  text-align: right;
+  color: var(--stone-800);
+  font-size: var(--fs-base);
+  word-break: break-all;
+}
+
+/* =========================================================================
+ * 按钮
+ * ========================================================================= */
+
 .btn {
-  margin: 0 12rpx 0 0;
-  border-radius: 999rpx;
-  font-size: 28rpx;
+  margin: 0 var(--sp-2) 0 0;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-base);
 }
 
 .btn::after {
   border: none;
 }
 
+/* 主按钮：墨底白字，对应网页端「开始排盘」 */
 .btn.primary {
-  background: #b45309;
+  background: var(--ink);
   color: #ffffff;
+  letter-spacing: 4rpx;
+}
+
+.btn.primary.btn-disabled {
+  opacity: 0.7;
 }
 
 .btn.ghost {
-  background: #f5f5f4;
-  color: #44403c;
+  background: var(--stone-100);
+  color: var(--stone-700);
+}
+
+.btn.outline {
+  background: #ffffff;
+  color: var(--brand);
+  border: 1rpx solid var(--brand-border);
 }
 
 .btn.block {
   width: 100%;
-  margin: 40rpx 0 0;
+  margin: var(--sp-5) 0 0;
+}
+
+/* =========================================================================
+ * 表单
+ * ========================================================================= */
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.field:last-of-type {
+  border-bottom: none;
+}
+
+.field-label {
+  color: var(--stone-500);
+  font-size: var(--fs-base);
+}
+
+.picker {
+  min-width: 320rpx;
+  padding: 12rpx 24rpx;
+  background: var(--stone-50);
+  border: 1rpx solid var(--stone-200);
+  border-radius: var(--radius-full);
+  text-align: center;
+  font-size: var(--fs-base);
+  color: var(--stone-800);
+}
+
+.radios {
+  display: flex;
+  gap: var(--sp-4);
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-base);
+  color: var(--stone-800);
+}
+
+/* 分段控件：对应网页端 Segmented / Tab */
+.segmented {
+  display: flex;
+  padding: 6rpx;
+  background: var(--stone-100);
+  border-radius: var(--radius-md);
+}
+
+.segmented-item {
+  flex: 1;
+  padding: 12rpx 0;
+  border-radius: var(--radius-sm);
+  text-align: center;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--stone-400);
+}
+
+.segmented-item.active {
+  background: var(--brand);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 提示条 */
+.alert {
+  padding: var(--sp-3) var(--sp-4);
+  border: 1rpx solid var(--danger-bd);
+  border-radius: var(--radius-md);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--fs-sm);
+}
+
+.alert.warn {
+  border-color: var(--amber-200);
+  background: var(--amber-50);
+  color: var(--amber-900);
+}
+
+/* =========================================================================
+ * 标签 / 徽章
+ * ========================================================================= */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.tag {
+  padding: 10rpx 20rpx;
+  background: var(--amber-50);
+  border: 1rpx solid var(--amber-200);
+  border-radius: var(--radius-full);
+}
+
+.tag-name {
+  color: var(--amber-800);
+  font-size: var(--fs-sm);
+}
+
+.tag-pos {
+  margin-left: var(--sp-1);
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+}
+
+/* =========================================================================
+ * 五行配色（对应网页端 ELEMENT_COLORS）
+ * .el-*  仅文字色 —— 用于大字干支、五行统计
+ * .box-* 底色 + 边框 + 文字 —— 用于命盘格、徽章
+ * ========================================================================= */
+
+.el-mu   { color: var(--wx-mu); }
+.el-huo  { color: var(--wx-huo); }
+.el-tu   { color: var(--wx-tu); }
+.el-jin  { color: var(--wx-jin); }
+.el-shui { color: var(--wx-shui); }
+.el-none { color: var(--wx-none); }
+
+.box-mu   { background: var(--wx-mu-bg);   border-color: var(--wx-mu-bd);   color: var(--wx-mu); }
+.box-huo  { background: var(--wx-huo-bg);  border-color: var(--wx-huo-bd);  color: var(--wx-huo); }
+.box-tu   { background: var(--wx-tu-bg);   border-color: var(--wx-tu-bd);   color: var(--wx-tu); }
+.box-jin  { background: var(--wx-jin-bg);  border-color: var(--wx-jin-bd);  color: var(--wx-jin); }
+.box-shui { background: var(--wx-shui-bg); border-color: var(--wx-shui-bd); color: var(--wx-shui); }
+.box-none { background: var(--wx-none-bg); border-color: var(--wx-none-bd); color: var(--wx-none); }
+
+/* =========================================================================
+ * 工具类
+ * ========================================================================= */
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.flex-1 { flex: 1; min-width: 0; }
+
+.text-center { text-align: center; }
+.text-xs { font-size: var(--fs-xs); }
+.text-sm { font-size: var(--fs-sm); }
+.bold { font-weight: 600; }
+
+.mt-1 { margin-top: var(--sp-1); }
+.mt-2 { margin-top: var(--sp-2); }
+.mt-3 { margin-top: var(--sp-3); }
+.mt-4 { margin-top: var(--sp-4); }
+
+.truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 隐藏 scroll-view 滚动条 */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
