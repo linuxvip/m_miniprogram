@@ -1,9 +1,419 @@
-/* 黄历页专有样式（待实现） */
+/* 黄历页（T-2.1 ~ T-2.6）
+ * 逐项对照网页端 components/HuangLi.tsx 的 Tailwind 类，px × 2 = rpx。
+ * 主色是黄历专用深红 --cinnabar(#8a1a1b)，与排盘页的琥珀色系严格区分。 */
 
-/* 卡片标题行：图标 + 标题 */
-.card-head {
+.hl-page {
+  padding-top: 8rpx;
+}
+
+/* ---------------- 顶部四柱信息栏 ---------------- */
+
+.hl-head {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-1);
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  background: var(--paper-deep);
+  border: 1rpx solid var(--stone-200);
+  border-radius: 32rpx;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16rpx;
+}
+
+.hl-pillars {
+  display: flex;
+  gap: 18rpx;
+  flex-shrink: 0;
+}
+
+.hl-pillar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hl-plabel {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--stone-400);
+  margin-bottom: 4rpx;
+}
+
+.hl-pbig {
+  font-size: 42rpx;
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+.hl-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: 1;
+  min-width: 0;
+}
+
+.hl-date-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  justify-content: flex-end;
+}
+
+.hl-date {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--stone-700);
+  white-space: nowrap;
+}
+
+.hl-week {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--stone-500);
+}
+
+.hl-lunar {
+  margin-top: 6rpx;
+  max-width: 100%;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--cinnabar);
+  background: rgba(255, 228, 230, 0.5);
+  border: 1rpx solid rgba(253, 164, 175, 0.5);
+  border-radius: 8rpx;
+  padding: 2rpx 10rpx;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.hl-badge {
+  flex-shrink: 0;
+  width: 76rpx;
+  height: 76rpx;
+  border-radius: 16rpx;
+  background: var(--cinnabar);
+  color: #ffffff;
+  font-size: 42rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(138, 26, 27, 0.3);
+}
+
+/* ---------------- 月历卡片 ---------------- */
+
+.hl-card {
+  background: #ffffff;
+  border: 1rpx solid var(--stone-100);
+  border-radius: 32rpx;
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.hl-nav {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 20rpx 28rpx;
+  border-bottom: 1rpx solid var(--stone-50);
+}
+
+.hl-arrow {
+  padding: 4rpx;
+  display: flex;
+  align-items: center;
+}
+
+.hl-ym {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.hl-ym-btn {
+  font-size: 52rpx;
+  font-weight: 700;
+  color: var(--stone-800);
+  letter-spacing: -1rpx;
+}
+
+.hl-today {
+  margin-left: auto;
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  background: var(--stone-50);
+  border: 1rpx solid var(--stone-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------------- 时辰地支条 ---------------- */
+
+.hl-branches {
+  display: flex;
+  justify-content: space-around;
+  padding: 12rpx 16rpx;
+  background: rgba(250, 250, 249, 0.5);
+  border-bottom: 1rpx solid var(--stone-50);
+}
+
+.hl-branch {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--stone-400);
+  background: #ffffff;
+  border: 1rpx solid var(--stone-100);
+}
+
+.hl-branch-on {
+  background: var(--cinnabar);
+  border-color: var(--cinnabar);
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 4rpx 12rpx rgba(138, 26, 27, 0.3);
+}
+
+/* ---------------- 星期表头与日期网格 ---------------- */
+
+.hl-body {
+  padding: 16rpx;
+}
+
+.hl-weekhead {
+  display: flex;
+  margin-bottom: 8rpx;
+}
+
+.hl-weekcell {
+  width: 14.28%;
+  text-align: center;
+  padding: 8rpx 0;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--stone-400);
+}
+
+.hl-weekcell-red {
+  color: var(--cinnabar);
+}
+
+.hl-grid {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1rpx solid var(--stone-100);
+  border-left: 1rpx solid var(--stone-100);
+}
+
+.hl-cell {
+  position: relative;
+  width: 14.28%;
+  height: 124rpx;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-right: 1rpx solid var(--stone-100);
+  border-bottom: 1rpx solid var(--stone-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hl-cell-empty {
+  background: var(--stone-50);
+}
+
+.hl-cell-bg {
+  position: absolute;
+  top: 4rpx;
+  right: 4rpx;
+  bottom: 4rpx;
+  left: 4rpx;
+  background: var(--cinnabar);
+  border-radius: 14rpx;
+  box-shadow: 0 4rpx 14rpx rgba(138, 26, 27, 0.25);
+}
+
+.hl-cell-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hl-solar {
+  font-size: 36rpx;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--stone-800);
+}
+
+.hl-solar-red {
+  color: var(--cinnabar);
+}
+
+.hl-solar-on {
+  color: #ffffff;
+}
+
+.hl-sub-line {
+  font-size: 20rpx;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 2rpx 0;
+  color: var(--stone-500);
+  transform: scale(0.92);
+}
+
+.hl-sub-jq {
+  color: var(--cinnabar);
+}
+
+.hl-sub-on {
+  color: var(--stone-300);
+}
+
+.hl-gz-line {
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--stone-400);
+}
+
+.hl-gz-jq {
+  color: rgba(138, 26, 27, 0.7);
+}
+
+.hl-gz-on {
+  color: var(--stone-400);
+}
+
+.hl-dot {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  box-shadow: 0 0 0 2rpx #ffffff;
+}
+
+.hl-foot {
+  display: block;
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--stone-300);
+  letter-spacing: 4rpx;
+}
+
+/* ---------------- 弹层（年 / 月） ---------------- */
+
+.hl-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+}
+
+.hl-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 620rpx;
+  transform: translate(-50%, -50%);
+  background: var(--paper);
+  border: 1rpx solid var(--stone-200);
+  border-radius: 36rpx;
+  box-shadow: 0 24rpx 64rpx rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  z-index: 201;
+}
+
+.hl-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 36rpx;
+  border-bottom: 1rpx solid var(--stone-100);
+}
+
+.hl-modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--stone-800);
+}
+
+.hl-years {
+  height: 680rpx;
+}
+
+.hl-year {
+  text-align: center;
+  padding: 26rpx 0;
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--stone-300);
+}
+
+.hl-year-on {
+  color: var(--cinnabar);
+  font-weight: 700;
+  font-size: 50rpx;
+}
+
+.hl-year-pad {
+  height: 280rpx;
+}
+
+.hl-modal-foot {
+  padding: 20rpx;
+  text-align: center;
+  font-size: 20rpx;
+  color: var(--stone-400);
+  background: var(--stone-50);
+  border-top: 1rpx solid var(--stone-100);
+  letter-spacing: 2rpx;
+}
+
+.hl-months {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 24rpx;
+}
+
+.hl-month {
+  width: calc(33.33% - 16rpx);
+  margin: 8rpx;
+  height: 104rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--stone-500);
+  background: var(--stone-50);
+  border-radius: 24rpx;
+}
+
+.hl-month-on {
+  background: var(--cinnabar);
+  color: #ffffff;
+  box-shadow: 0 6rpx 16rpx rgba(138, 26, 27, 0.25);
 }

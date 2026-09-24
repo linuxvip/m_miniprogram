@@ -245,6 +245,16 @@ const SHOTS = [
     const page = await go(mp, `/pages/chart/chart?${FAIL_QS}`, 'pages/chart/chart')
     await waitReady(page)
     await sleep(600)
+  } },
+  { name: '13-huangli', run: async (mp) => {
+    await go(mp, '/pages/huangli/huangli', 'pages/huangli/huangli')
+    await sleep(1200)
+  } },
+  { name: '14-huangli-year-picker', run: async (mp) => {
+    await go(mp, '/pages/huangli/huangli', 'pages/huangli/huangli')
+    await sleep(1000)
+    await tapText(mp, '.hl-ym-btn', `${new Date().getFullYear()}年`)
+    await sleep(1100)
   } }
 ]
 

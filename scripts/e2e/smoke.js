@@ -21,6 +21,7 @@
  * 不含截图 —— 截图在 scripts/e2e/shots.js。
  */
 import automator from 'miniprogram-automator'
+import { Solar, SolarMonth } from 'lunar-typescript'
 import { Gender } from '../../utils/bazi/types.js'
 import { calculateBaZi } from '../../utils/bazi/baziCalc.js'
 
@@ -418,6 +419,223 @@ const run = async () => {
   await wait(null, 900)
   const back = await mp.currentPage()
   check('返回回到上一页', back.path === 'pages/chart/chart' || back.path === 'pages/paipan/paipan', back.path)
+
+  /* ===================== 黄历页（T-2.1 ~ T-2.6） ===================== */
+  /** tabBar 页只能 switchTab；刚切完 currentPage() 偶尔还抛错，所以轮询确认 */
+  const openTab = async (url, expect) => {
+    for (let i = 0; i < 3; i++) {
+      try {
+        await mp.switchTab(url)
+      } catch (e) {
+        trace(`switchTab 抖动：${e && e.message}`)
+      }
+      for (let j = 0; j < 12; j++) {
+        await sleep(500)
+        let p = null
+        try {
+          p = await mp.currentPage()
+        } catch (e) {
+          continue
+        }
+        if (p && p.path === expect) return p
+      }
+    }
+    throw new Error(`switchTab 之后没停在 ${expect}`)
+  }
+  const daysInMonth = (y, m) => SolarMonth.fromYm(y, m).getDays().length
+
+  step('黄历页 · 打开与顶部四柱信息栏（T-2.3）')
+  const hlPage = await openTab('/pages/huangli/huangli', 'pages/huangli/huangli')
+  check('黄历页可打开', hlPage.path === 'pages/huangli/huangli', hlPage.path)
+  await wait(hlPage, 900)
+
+  const nowD = new Date()
+  let hd = await dataOf(hlPage)
+  const hlInput = hd.input
+  check('默认停在今天',
+    hlInput.year === nowD.getFullYear() && hlInput.month === nowD.getMonth() + 1 && hlInput.day === nowD.getDate(),
+    `${hlInput.year}-${hlInput.month}-${hlInput.day}`)
+  check('四柱 4 根、标签为「年月日时」',
+    (hd.header.pillars || []).map((p) => p.label).join('') === '年月日时',
+    (hd.header.pillars || []).map((p) => p.label).join(''))
+  check('四柱带五行文字色',
+    (hd.header.pillars || []).every((p) => !!p.ganCls && !!p.zhiCls),
+    (hd.header.pillars || []).map((p) => `${p.gan}:${p.ganCls}`).join(' '))
+  // 黄历页走 lunar-typescript 的 getEightChar()，这一侧独立算一遍比对（防两侧漂移）
+  const hlEight = (input) => Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute || 0, 0)
+    .getLunar().getEightChar()
+  const hlLunar = (input) => {
+    const l = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute || 0, 0).getLunar()
+    return `农历${l.getYearInGanZhi()} ${l.getMonthInChinese()}月${l.getDayInChinese()} · ${l.getYearShengXiao()}`
+  }
+  const hlWant = (() => {
+    const ec = hlEight(hlInput)
+    return [ec.getYearGan() + ec.getYearZhi(), ec.getMonthGan() + ec.getMonthZhi(),
+      ec.getDayGan() + ec.getDayZhi(), ec.getTimeGan() + ec.getTimeZhi()]
+  })()
+  const domPillars = (await textsOf(hlPage, '.hl-pbig')).join('')
+  check('顶部四柱与历法库一致',
+    (hd.header.pillars || []).map((p) => p.gan + p.zhi).join('') === hlWant.join(''), 
+    `${(hd.header.pillars || []).map((p) => p.gan + p.zhi).join('')} vs ${hlWant.join('')}`)
+  check('DOM 里渲染出 8 个柱子文字', domPillars === hlWant.join(''), domPillars)
+  check('渲染出 4 个柱位', (await allOf(hlPage, '.hl-pillar')).length === 4)
+  check('公历文案 = 年.月.日',
+    hd.header.solarText === `${hlInput.year}.${String(hlInput.month).padStart(2, '0')}.${String(hlInput.day).padStart(2, '0')}`,
+    hd.header.solarText)
+  check('星期显示中文星期', /^[日一二三四五六]$/.test(hd.header.week), hd.header.week)
+  check('农历文案与历法库一致', hd.header.lunarText === hlLunar(hlInput), hd.header.lunarText)
+  check('时支与历法库一致', hd.header.timeBranch === hlEight(hlInput).getTimeZhi(),
+    `${hd.header.timeBranch}/${hlEight(hlInput).getTimeZhi()}`)
+  check('大日号 = 选中日', hd.header.day === hlInput.day, String(hd.header.day))
+  check('页脚文案非空', !!(await textOf(hlPage, '.hl-foot')), await textOf(hlPage, '.hl-foot'))
+
+  step('黄历页 · 月历网格与 DOM 对齐（T-2.1 / T-2.5）')
+  let grid = hd.month
+  check('网格天数 = 当月天数', grid.cells.length === daysInMonth(grid.year, grid.month),
+    `${grid.cells.length}/${daysInMonth(grid.year, grid.month)}`)
+  check('空位数 = 当月 1 号星期几', grid.leadingCount === Solar.fromYmd(grid.year, grid.month, 1).getWeek(),
+    `${grid.leadingCount}/${Solar.fromYmd(grid.year, grid.month, 1).getWeek()}`)
+  check('DOM 空格子数 = 空位数', (await allOf(hlPage, '.hl-cell-empty')).length === grid.leadingCount)
+  check('DOM 日格子数 = 当月天数', (await allOf(hlPage, '.hl-cell-inner')).length === grid.cells.length)
+  const domDays = (await textsOf(hlPage, '.hl-solar')).join(',')
+  check('DOM 日号与数据一致', domDays === grid.cells.map((c) => String(c.day)).join(','), domDays)
+  const domSubs = (await textsOf(hlPage, '.hl-sub-line')).join(',')
+  check('副行（节气 / 农历）与数据一致', domSubs === grid.cells.map((c) => c.sub).join(','), domSubs)
+  const domGz = (await textsOf(hlPage, '.hl-gz-line')).join(',')
+  check('日干支行与数据一致', domGz === grid.cells.map((c) => c.gz).join(','), domGz)
+  check('星期表头 7 列', (await allOf(hlPage, '.hl-weekcell')).length === 7)
+  const weekendCells = grid.cells.filter((c) => c.weekend)
+  const selCell = grid.cells.find((c) => c.selected)
+  check('周六周日格合计不少于 8 个', weekendCells.length >= 8, String(weekendCells.length))
+  const redCount = (await allOf(hlPage, '.hl-solar-red')).length
+  check('周末日号染红（选中日在周末时少一个）',
+    redCount === weekendCells.length - (selCell && selCell.weekend ? 1 : 0), String(redCount))
+  const jqCell = grid.cells.find((c) => c.jieQi)
+  check('当月有节气格且副行显示节气名', !!jqCell && domSubs.indexOf(jqCell.jieQi) >= 0,
+    jqCell ? `${jqCell.day}日 ${jqCell.jieQi}` : '当月无节气')
+  check('节气格副行走深红样式', !!jqCell && jqCell.subCls === 'hl-sub-jq', jqCell && jqCell.subCls)
+  check('选中格唯一', grid.cells.filter((c) => c.selected).length === 1)
+  check('选中的就是今天', selCell.day === hlInput.day, `${selCell.day}/${hlInput.day}`)
+  check('DOM 里只有一个高亮格', (await allOf(hlPage, '.hl-on')).length === 1)
+  check('「今」标记唯一', (await allOf(hlPage, '.hl-td')).length === 1)
+  check('年月按钮显示当前年月',
+    (await textsOf(hlPage, '.hl-ym-btn')).join('') === `${grid.year}年${grid.month}月`,
+    (await textsOf(hlPage, '.hl-ym-btn')).join(''))
+
+  step('黄历页 · 时辰条（T-2.4）')
+  check('12 个地支', (await allOf(hlPage, '.hl-branch')).length === 12)
+  check('时辰条带小时文案', (hd.branches || []).every((b) => /^\d+时$/.test(b.hourText)),
+    (hd.branches || []).map((b) => b.hourText).join(','))
+  check('当前时支高亮唯一', (await allOf(hlPage, '.hl-branch-on')).length === 1)
+  check('高亮的就是当前时支', (await textOf(hlPage, '.hl-branch-on')) === hd.header.timeBranch,
+    `${await textOf(hlPage, '.hl-branch-on')}/${hd.header.timeBranch}`)
+  await tapByText(hlPage, '.hl-branch', '午')
+  await wait(hlPage, 600)
+  hd = await dataOf(hlPage)
+  check('点时辰条把时刻挪到整点', hd.input.hour === 12 && hd.input.minute === 0, `${hd.input.hour}:${hd.input.minute}`)
+  check('时柱随之变为午', hd.header.timeBranch === '午', hd.header.timeBranch)
+  check('高亮跟着挪到午', (await textOf(hlPage, '.hl-branch-on')) === '午', await textOf(hlPage, '.hl-branch-on'))
+  check('点时辰不改日期', hd.input.day === hlInput.day, String(hd.input.day))
+
+  step('黄历页 · 选日（T-2.1）')
+  grid = hd.month
+  const targetDay = grid.cells.find((c) => c.day !== hd.input.day).day
+  const innerEls = await allOf(hlPage, '.hl-cell-inner')
+  await innerEls[grid.cells.findIndex((c) => c.day === targetDay)].tap()
+  await wait(hlPage, 700)
+  hd = await dataOf(hlPage)
+  check('点日期切换选中日', hd.input.day === targetDay, `点 ${targetDay} → 选中 ${hd.input.day}`)
+  check('高亮格仍然唯一', (await allOf(hlPage, '.hl-on')).length === 1)
+  check('高亮格就是刚点的那天', (await textOf(hlPage, '.hl-on')).indexOf(String(targetDay)) === 0, await textOf(hlPage, '.hl-on'))
+  check('顶部大日号跟着变', hd.header.day === targetDay, String(hd.header.day))
+  check('日柱跟着变且与历法库一致',
+    hd.header.pillars[2].gan + hd.header.pillars[2].zhi === hlEight(hd.input).getDayGan() + hlEight(hd.input).getDayZhi(),
+    hd.header.pillars[2].gan + hd.header.pillars[2].zhi)
+
+  step('黄历页 · 上下月与「今」（T-2.6）')
+  const tapArrow = async (idx) => {
+    const els = await allOf(hlPage, '.hl-arrow')
+    await els[idx].tap()
+    await wait(hlPage, 600)
+  }
+  const baseYM = [hd.input.year, hd.input.month]
+  await tapArrow(0)
+  hd = await dataOf(hlPage)
+  const prevWant = baseYM[1] === 1 ? [baseYM[0] - 1, 12] : [baseYM[0], baseYM[1] - 1]
+  check('上个月按钮后退一月', hd.input.year === prevWant[0] && hd.input.month === prevWant[1],
+    `${hd.input.year}-${hd.input.month}`)
+  check('换月后网格按新月重算', hd.month.cells.length === daysInMonth(hd.input.year, hd.input.month),
+    `${hd.month.cells.length}/${daysInMonth(hd.input.year, hd.input.month)}`)
+  check('换月后高亮格仍唯一', (await allOf(hlPage, '.hl-on')).length === 1)
+  await tapArrow(1)
+  hd = await dataOf(hlPage)
+  check('下个月按钮回到原月', hd.input.year === baseYM[0] && hd.input.month === baseYM[1],
+    `${hd.input.year}-${hd.input.month}`)
+  await tapArrow(0)
+  await tapArrow(0)
+  await (await firstOf(hlPage, '.hl-today')).tap()
+  await wait(hlPage, 800)
+  hd = await dataOf(hlPage)
+  check('点「今」回到今天',
+    hd.input.year === nowD.getFullYear() && hd.input.month === nowD.getMonth() + 1 && hd.input.day === nowD.getDate(),
+    `${hd.input.year}-${hd.input.month}-${hd.input.day}`)
+  check('回到今天后「今」标记还在', (await allOf(hlPage, '.hl-td')).length === 1)
+  check('回到今天后选中今日', hd.month.selectedKey === hd.month.todayKey,
+    `${hd.month.selectedKey}/${hd.month.todayKey}`)
+
+  step('黄历页 · 年 / 月弹层（T-2.2）')
+  check('年 / 月两个按钮', (await allOf(hlPage, '.hl-ym-btn')).length === 2)
+  await (await allOf(hlPage, '.hl-ym-btn'))[0].tap()
+  await wait(hlPage, 800)
+  hd = await dataOf(hlPage)
+  check('点年份打开弹层', hd.showYear === true)
+  check('弹层标题为「选择年份」', (await textOf(hlPage, '.hl-modal-title')) === '选择年份', await textOf(hlPage, '.hl-modal-title'))
+  check('年份弹层 1900–2100 共 201 项',
+    hd.yearOptions.length === 201 && (await allOf(hlPage, '.hl-year')).length === 201,
+    `${hd.yearOptions.length}/${(await allOf(hlPage, '.hl-year')).length}`)
+  check('打开时滚动锚点指向当前年', hd.yearAnchor === `y${hd.month.year}`, hd.yearAnchor)
+  check('当前年在弹层里高亮唯一', (await allOf(hlPage, '.hl-year-on')).length === 1)
+  check('高亮项就是当前年', (await textOf(hlPage, '.hl-year-on')) === String(hd.month.year),
+    await textOf(hlPage, '.hl-year-on'))
+  const prevYear = String(hd.month.year - 1)
+  await tapByText(hlPage, '.hl-year', prevYear)
+  await wait(hlPage, 900)
+  hd = await dataOf(hlPage)
+  check('选年后弹层关闭', hd.showYear === false)
+  check('选年生效', String(hd.input.year) === prevYear, String(hd.input.year))
+  check('换年后网格天数正确', hd.month.cells.length === daysInMonth(hd.input.year, hd.input.month),
+    `${hd.month.cells.length}/${daysInMonth(hd.input.year, hd.input.month)}`)
+  check('换年后农历文案跟着重算', hd.header.lunarText === hlLunar(hd.input), hd.header.lunarText)
+  // 蒙层关闭
+  await (await allOf(hlPage, '.hl-ym-btn'))[0].tap()
+  await wait(hlPage, 700)
+  check('再点年份可再次打开', (await dataOf(hlPage)).showYear === true)
+  await (await firstOf(hlPage, '.hl-mask')).tap()
+  await wait(hlPage, 600)
+  check('点蒙层关闭年份弹层', (await dataOf(hlPage)).showYear === false)
+
+  await (await allOf(hlPage, '.hl-ym-btn'))[1].tap()
+  await wait(hlPage, 800)
+  hd = await dataOf(hlPage)
+  check('点月份打开弹层', hd.showMonth === true)
+  check('弹层标题为「选择月份」', (await textOf(hlPage, '.hl-modal-title')) === '选择月份', await textOf(hlPage, '.hl-modal-title'))
+  check('月份弹层 12 项', (await allOf(hlPage, '.hl-month')).length === 12)
+  check('当前月高亮唯一', (await allOf(hlPage, '.hl-month-on')).length === 1)
+  check('高亮项就是当前月', (await textOf(hlPage, '.hl-month-on')) === `${hd.month.month}月`,
+    await textOf(hlPage, '.hl-month-on'))
+  await tapByText(hlPage, '.hl-month', '2月')
+  await wait(hlPage, 900)
+  hd = await dataOf(hlPage)
+  check('选月后弹层关闭', hd.showMonth === false)
+  check('选月生效', hd.input.month === 2, String(hd.input.month))
+  check('2 月网格天数正确', hd.month.cells.length === daysInMonth(hd.input.year, 2),
+    `${hd.month.cells.length}/${daysInMonth(hd.input.year, 2)}`)
+  check('日号超出目标月天数时收敛到月末',
+    hd.input.day === Math.min(nowD.getDate(), daysInMonth(hd.input.year, 2)), String(hd.input.day))
+  await (await firstOf(hlPage, '.hl-today')).tap()
+  await wait(hlPage, 800)
+  hd = await dataOf(hlPage)
+  check('弹层试完能回到今天', hd.month.selectedKey === hd.month.todayKey, `${hd.month.selectedKey}/${hd.month.todayKey}`)
 
   const failed = results.filter((r) => !r.ok)
   console.log(`\n${'='.repeat(64)}`)

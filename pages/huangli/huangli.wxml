@@ -1,29 +1,98 @@
-<view class="page">
-  <view class="card">
-    <view class="card-head">
-      <ui-icon name="calendar-days" color="#b39b7d" size="{{44}}" />
-      <text class="title">黄历</text>
+<view class="page hl-page">
+  <!-- 顶部四柱与日期信息栏（T-2.3） -->
+  <view class="hl-head">
+    <view class="hl-pillars">
+      <view class="hl-pillar" wx:for="{{header.pillars}}" wx:key="label">
+        <text class="hl-plabel">{{item.label}}</text>
+        <text class="hl-pbig {{item.ganCls}}">{{item.gan}}</text>
+        <text class="hl-pbig {{item.zhiCls}}">{{item.zhi}}</text>
+      </view>
     </view>
-    <text class="desc">月历、节气、每日干支与时辰（下一步实现）</text>
+    <view class="hl-meta">
+      <view class="hl-date-row">
+        <text class="hl-date">{{header.solarText}}</text>
+        <text class="hl-week">星期{{header.week}}</text>
+      </view>
+      <text class="hl-lunar">{{header.lunarText}}</text>
+    </view>
+    <view class="hl-badge">{{header.day}}</view>
   </view>
 
-  <view class="card">
-    <text class="section-title">待实现内容</text>
-    <view class="row">
-      <text class="row-key">月历网格</text>
-      <text class="row-val">7 列 × 4~5 行，含节气与农历日</text>
+  <!-- 月历卡片 -->
+  <view class="hl-card">
+    <!-- 月份导航 -->
+    <view class="hl-nav">
+      <view class="hl-arrow" bindtap="prevMonth">
+        <ui-icon name="chevron-left" color="#d6d3d1" size="{{44}}" />
+      </view>
+      <view class="hl-ym">
+        <text class="hl-ym-btn" bindtap="openYear">{{month.year}}年</text>
+        <text class="hl-ym-btn" bindtap="openMonth">{{month.month}}月</text>
+      </view>
+      <view class="hl-arrow" bindtap="nextMonth">
+        <ui-icon name="chevron-right" color="#d6d3d1" size="{{44}}" />
+      </view>
+      <view class="hl-today" bindtap="backToToday">
+        <ui-icon name="calendar-days" color="#a8a29e" size="{{36}}" />
+      </view>
     </view>
-    <view class="row">
-      <text class="row-key">年 / 月选择</text>
-      <text class="row-val">1900–2100 年纵向滚动 + 月份 3 列网格</text>
+
+    <!-- 时辰地支条（T-2.4） -->
+    <view class="hl-branches">
+      <view class="hl-branch {{item.b === header.timeBranch ? 'hl-branch-on' : ''}}"
+        wx:for="{{branches}}" wx:key="b" data-branch="{{item.b}}" bindtap="pickBranch">{{item.b}}</view>
     </view>
-    <view class="row">
-      <text class="row-key">顶部信息栏</text>
-      <text class="row-val">选中时刻的四柱、生肖、农历、公历</text>
+
+    <!-- 星期表头 + 日期网格（T-2.1 / T-2.5） -->
+    <view class="hl-body">
+      <view class="hl-weekhead">
+        <text class="hl-weekcell {{item.weekend ? 'hl-weekcell-red' : ''}}"
+          wx:for="{{month.weekLabels}}" wx:key="label">{{item.label}}</text>
+      </view>
+
+      <view class="hl-grid">
+        <view class="hl-cell hl-cell-empty" wx:for="{{month.leadingCells}}" wx:key="*this"></view>
+        <view class="{{item.cls}}" wx:for="{{month.cells}}" wx:key="day" data-day="{{item.day}}" bindtap="pickDay">
+          <view class="hl-cell-bg" wx:if="{{item.selected}}"></view>
+          <view class="hl-cell-inner">
+            <text class="hl-solar {{item.selected ? 'hl-solar-on' : (item.weekend ? 'hl-solar-red' : '')}}">{{item.day}}</text>
+            <text class="hl-sub-line {{item.subCls}}">{{item.sub}}</text>
+            <text class="hl-gz-line {{item.gzCls}}">{{item.gz}}</text>
+          </view>
+          <view class="hl-dot" wx:if="{{item.today && !item.selected}}"></view>
+        </view>
+      </view>
     </view>
-    <view class="row">
-      <text class="row-key">时辰地支条</text>
-      <text class="row-val">12 个地支，点击切换时辰</text>
+  </view>
+
+  <text class="hl-foot">{{footerText}}</text>
+
+  <!-- 年份弹层（T-2.2）：纵向滚动，打开时滚到当前年 -->
+  <view class="hl-mask" wx:if="{{showYear}}" bindtap="closeYear"></view>
+  <view class="hl-modal" wx:if="{{showYear}}">
+    <view class="hl-modal-head">
+      <text class="hl-modal-title">选择年份</text>
+      <view bindtap="closeYear"><ui-icon name="x" color="#a8a29e" size="{{44}}" /></view>
+    </view>
+    <scroll-view class="hl-years" scroll-y scroll-into-view="{{yearAnchor}}" scroll-with-animation>
+      <view class="hl-year-pad"></view>
+      <view class="hl-year {{item === month.year ? 'hl-year-on' : ''}}" wx:for="{{yearOptions}}" wx:key="*this"
+        id="y{{item}}" data-year="{{item}}" bindtap="pickYear">{{item}}</view>
+      <view class="hl-year-pad"></view>
+    </scroll-view>
+    <view class="hl-modal-foot">上下滑动选择年份</view>
+  </view>
+
+  <!-- 月份弹层（T-2.2）：3 列网格 -->
+  <view class="hl-mask" wx:if="{{showMonth}}" bindtap="closeMonth"></view>
+  <view class="hl-modal" wx:if="{{showMonth}}">
+    <view class="hl-modal-head">
+      <text class="hl-modal-title">选择月份</text>
+      <view bindtap="closeMonth"><ui-icon name="x" color="#a8a29e" size="{{44}}" /></view>
+    </view>
+    <view class="hl-months">
+      <view class="hl-month {{item === month.month ? 'hl-month-on' : ''}}" wx:for="{{monthOptions}}" wx:key="*this"
+        data-month="{{item}}" bindtap="pickMonth">{{item}}月</view>
     </view>
   </view>
 </view>
