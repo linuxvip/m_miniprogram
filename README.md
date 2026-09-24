@@ -3,7 +3,7 @@
 `www.minghaishiyi.cn` 的微信小程序版本。定位是**传统文化与历法工具**：
 四柱排盘、黄历、命例库（文章暂缓）。
 
-当前进度：**排盘主链路与黄历页已完工**（输入页 / 三态日期弹层 / 命盘页 / 黄历页），
+当前进度：**排盘主链路、黄历页、基础设施（请求层 / 站点配置 / 本地存储）已完工**，
 并有单测 + 界面 e2e 兜底；命例库、微信登录尚未开始。
 逐项进度见 [`docs/工作任务清单.md`](docs/工作任务清单.md)。
 
@@ -56,6 +56,9 @@ utils/
   calendar.js                   历法纯函数（农历换算 / 五虎遁 / 五鼠遁）
   almanac.js                    黄历纯逻辑（月历网格 / 月份导航 / 时辰条 / 四柱信息栏）
   datetimeSheet.js              弹层状态机（纯函数，单测覆盖）
+  request.js                    请求层（baseURL / token 注入 / 401 刷新 / 错误分类）
+  storage.js                    本地存储封装（统一 key 前缀，无 wx 环境降级内存）
+  config.js                     站点配置（1 小时缓存 / 白名单字段 / 失败降级）
   areaData.js                   省→市 + 经纬度（由网页端 areaData.ts 生成）
   chartRoute.js                 排盘参数 ↔ URL query（分享用）
   preferences.js                排盘偏好本地记忆
@@ -65,13 +68,15 @@ scripts/
   gen-bazi-golden.js            重新生成算法快照
   gen-tabbar-icons.cjs          生成 tabBar 图标
   gen-area-data.cjs             从网页端生成 areaData.js
-  e2e/smoke.js                  界面 e2e（真点界面，157 项断言）
+  e2e/smoke.js                  界面 e2e（真点界面，176 项断言）
   e2e/shots.js                  界面截图留档
 tests/
   bazi.test.js                  算法回归测试（快照比对）
   almanac.test.js               黄历测试（网格 / 导航 / 时辰条 / 与排盘算法等价）
   datetimeSheet.test.js         弹层状态机测试
   chartRoute.test.js            分享参数编解码测试
+  request.test.js               请求层测试（401 刷新 / 并发去重 / 错误分类）
+  config.test.js                站点配置测试（白名单字段 / 缓存过期 / 降级）
 docs/
   需求梳理与迁移方案.md          需求、方案、风险、实施记录
   工作任务清单.md                逐项任务、进度与变更记录
@@ -111,13 +116,13 @@ node scripts/gen-bazi-golden.js             # 确认改动符合预期时，更�
 
 ```bash
 npm install          # 安装依赖并补齐 npm 入口
-npm test             # 算法 + 历法 + 黄历 + 弹层状态机 + 分享参数单测（46 项，0.2 秒）
+npm test             # 算法 / 历法 / 黄历 / 弹层 / 分享参数 / 请求层 / 站点配置（76 项，0.2 秒）
 npm run gen:golden   # 重新生成算法快照
 
 # 界面 e2e 与截图：要先给开发者工具开自动化通道
 /Applications/wechatwebdevtools.app/Contents/MacOS/cli auto \
   --project "$PWD" --auto-port 9530
-npm run e2e          -- --ws=ws://127.0.0.1:9530   # 157 项断言，约 60 秒
+npm run e2e          -- --ws=ws://127.0.0.1:9530   # 176 项断言，约 60 秒（末两组要联网）
 npm run e2e:shots    -- --ws=ws://127.0.0.1:9530   # 14 张截图 → artifacts/e2e/shots/
 ```
 

@@ -34,6 +34,18 @@ Page({
 
   onLoad() {
     this.refresh(nowInput())
+    // 页脚文案取站点配置（T-0.9），与网页端 `{config.footer_text}` 一致；
+    // 配置没来 / 拉取失败时继续用 almanac 里的内置默认值
+    const app = getApp()
+    if (app && typeof app.onSiteConfig === 'function') {
+      this._offConfig = app.onSiteConfig((config) => this.applyFooter(config))
+    }
+  },
+
+  /** 站点配置里的页脚文案（空值不动，避免把默认文案擦掉） */
+  applyFooter(config) {
+    const text = config && config.footer_text
+    if (text && text !== this.data.footerText) this.setData({ footerText: text })
   },
 
   // 「今」标记要跟着真实时间走：跨日后回到页面不能还标在昨天（T-2.6）
@@ -48,6 +60,10 @@ Page({
 
   onUnload() {
     this._stopClock()
+    if (this._offConfig) {
+      this._offConfig()
+      this._offConfig = null
+    }
   },
 
   _startClock() {

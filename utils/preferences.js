@@ -6,8 +6,7 @@
  * 云端同步（登录后跨设备一致）依赖 T-0.3 请求层与 T-5.11，本文件先只做本地记忆。
  */
 import { DEFAULT_AREA, lookupArea, formatArea } from './areaData.js'
-
-const STORAGE_KEY = 'mhsy:paiPanPreferences'
+import { get as storageGet, set as storageSet, KEYS } from './storage.js'
 
 /** 出生时区选项（对应网页端 TIMEZONE_OPTIONS；UTC-2 为上游遗漏，此处补齐） */
 export const TIMEZONE_OPTIONS = [
@@ -59,21 +58,14 @@ export const DEFAULT_PREFERENCES = {
 
 /** 读取本地偏好，缺字段用默认值补齐；坏数据直接忽略 */
 export const loadPreferences = () => {
-  try {
-    const raw = wx.getStorageSync(STORAGE_KEY)
-    if (!raw || typeof raw !== 'object') return { ...DEFAULT_PREFERENCES }
-    return { ...DEFAULT_PREFERENCES, ...raw }
-  } catch (e) {
-    return { ...DEFAULT_PREFERENCES }
-  }
+  const raw = storageGet(KEYS.paiPanPreferences)
+  if (!raw || typeof raw !== 'object') return { ...DEFAULT_PREFERENCES }
+  return { ...DEFAULT_PREFERENCES, ...raw }
 }
 
 export const savePreferences = (prefs) => {
-  try {
-    wx.setStorageSync(STORAGE_KEY, { ...DEFAULT_PREFERENCES, ...prefs })
-  } catch (e) {
-    /* 存储写满等情况静默失败，不影响排盘 */
-  }
+  // 存储写满等情况静默失败，不影响排盘（storage.set 内部已吞掉异常）
+  storageSet(KEYS.paiPanPreferences, { ...DEFAULT_PREFERENCES, ...prefs })
 }
 
 /** 时区索引 ↔ 值 */

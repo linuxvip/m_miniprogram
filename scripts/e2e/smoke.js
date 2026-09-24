@@ -487,7 +487,10 @@ const run = async () => {
   check('时支与历法库一致', hd.header.timeBranch === hlEight(hlInput).getTimeZhi(),
     `${hd.header.timeBranch}/${hlEight(hlInput).getTimeZhi()}`)
   check('大日号 = 选中日', hd.header.day === hlInput.day, String(hd.header.day))
-  check('页脚文案非空', !!(await textOf(hlPage, '.hl-foot')), await textOf(hlPage, '.hl-foot'))
+  const footText = await textOf(hlPage, '.hl-foot')
+  const cfgFooter = await mp.evaluate(() => getApp().globalData.siteConfig.footer_text)
+  check('页脚文案非空', !!footText, footText)
+  check('页脚文案取自站点配置（T-0.9）', footText === cfgFooter, `${footText} vs ${cfgFooter}`)
 
   step('黄历页 · 月历网格与 DOM 对齐（T-2.1 / T-2.5）')
   let grid = hd.month
@@ -636,6 +639,113 @@ const run = async () => {
   await wait(hlPage, 800)
   hd = await dataOf(hlPage)
   check('弹层试完能回到今天', hd.month.selectedKey === hd.month.todayKey, `${hd.month.selectedKey}/${hd.month.todayKey}`)
+
+  /* ============== 站点配置与请求层（T-0.9 / T-0.3） ============== */
+  // 这一段是**真打线上**：GET 公开接口（读）、带假 token 请求 /auth/me/（必然 401）。
+  // 除了 401 那次刷新尝试，不会在服务端产生任何数据。所以它需要有网络。
+  //
+  // ⚠️ 域名白名单的边界（2026-09-24 实测）：模拟器的域名校验由 project.config.json 的
+  // `urlCheck` 决定，本项目是 false（不校验）——**此时请求能通只能说明「运行时能打通线上域名」，
+  // 不能证明后台「服务器域名」配好了**。而把它打开（urlCheck: true）在本机自动化会话里连
+  // `https://servicewechat.com/` 都报 `url not in domain list`，即这个会话拿不到应用的域名列表，
+  // 所以这项只能在**真机预览 / 登录着开发者工具的预览**里验证。详见文档。
+  step('站点配置 · app 启动即拉取（T-0.9）')
+  const cfgState = await mp.evaluate(() => new Promise((resolve) => {
+    const app = getApp()
+    const done = () => resolve({
+      ready: app.globalData.siteConfigReady === true,
+      config: app.globalData.siteConfig,
+      keys: Object.keys(app.globalData.siteConfig || {})
+    })
+    if (app.globalData.siteConfigReady) done()
+    else app.onSiteConfig(done)
+  }))
+  check('app 启动后站点配置就绪', cfgState.ready === true)
+  check('站名来自接口而不是写死', cfgState.config.site_name === '命海拾遗', cfgState.config.site_name)
+  check('只保留白名单字段（密钥不进内存）', cfgState.keys.indexOf('deepseek_api_key') < 0, cfgState.keys.join(','))
+  check('页脚文案来自接口', cfgState.config.footer_text === 'Ming Hai Shi Yi · 命海拾遗', cfgState.config.footer_text)
+
+  step('请求层 · 线上域名与分页（T-0.3）')
+  const net = await mp.evaluate(() => {
+    const req = require('utils/request.js')
+    const cfg = require('utils/config.js')
+    const panel = async () => {
+      const out = {}
+      // 1) 公开接口能通（urlCheck=false，所以这只证明运行时能打通线上，不代表白名单已配）
+      const site = await req.get('/system-configs/', { auth: false })
+      out.siteName = site.site_name
+      // 2) 强制重拉配置：验证缓存落盘 + 白名单过滤在真实运行时也生效
+      const loaded = await cfg.loadSiteConfig({ force: true })
+      out.from = loaded.from
+      const entry = wx.getStorageSync('mhsy:config:site') || {}
+      out.cached = !!entry.data && !!entry.ts
+      out.cachedHasSecret = JSON.stringify(entry).indexOf('sk-') >= 0
+      // 3) 分页：第一页 + 用 next 游标拿第二页
+      const page1 = await req.get('/destiny-cases/', { params: { page_size: 2 }, auth: false })
+      out.count = page1.count
+      out.page1 = (page1.results || []).map((r) => r.id)
+      out.nextRaw = page1.next || ''
+      out.next = req.normalizeNextUrl(page1.next)
+      const page2 = await req.get(out.next, { auth: false })
+      out.page2 = (page2.results || []).map((r) => r.id)
+      const first = (page1.results || [])[0] || {}
+      out.filled = typeof first.feedback === 'string'
+      return out
+    }
+    return panel()
+  })
+  check('从运行时能打通线上接口', net.siteName === '命海拾遗', net.siteName)
+  check('强制重拉走的是网络', net.from === 'network', net.from)
+  check('配置写进了本地缓存', net.cached === true)
+  check('缓存里不含密钥', net.cachedHasSecret === false)
+  check('命例库总数 > 1000', net.count > 1000, String(net.count))
+  check('第一页按 page_size 返回 2 条', net.page1.length === 2, net.page1.join(','))
+  check('服务端 next 是 http 绝对地址（所以要改写）', net.nextRaw.indexOf('http://') === 0, net.nextRaw)
+  check('normalizeNextUrl 改写为 https 正式域名', net.next.indexOf('https://www.minghaishiyi.cn/api/') === 0, net.next)
+  check('第二页能取回且与第一页不重复',
+    net.page2.length === 2 && net.page2.every((id) => net.page1.indexOf(id) < 0),
+    `${net.page1.join(',')} vs ${net.page2.join(',')}`)
+  check('命例记录带反馈文本字段', net.filled === true)
+
+  step('请求层 · 401 自动刷新与并发去重（T-0.3）')
+  const authFlow = await mp.evaluate(() => {
+    const req = require('utils/request.js')
+    const st = require('utils/storage.js')
+    const calls = []
+    // 数一数到底打了几次刷新接口（页面里没法直接观察，所以在 adapter 上挂计数器）
+    req.client.setAdapter((opts) => {
+      calls.push(opts.url)
+      return req.wxAdapter(opts)
+    })
+    return (async () => {
+      st.saveTokens({ access: 'e2e-bogus-access', refresh: 'e2e-bogus-refresh' })
+      const one = () => req.get('/auth/me/').then(
+        (data) => ({ ok: true, data }),
+        (err) => ({ ok: false, kind: err.kind, status: err.status, message: err.message })
+      )
+      const results = await Promise.all([one(), one(), one()])
+      const out = {
+        results,
+        refreshCalls: calls.filter((u) => u.indexOf('/auth/refresh/') >= 0).length,
+        meCalls: calls.filter((u) => u.indexOf('/auth/me/') >= 0).length,
+        access: st.getAccessToken(),
+        refresh: st.getRefreshToken()
+      }
+      st.clearTokens()
+      req.client.setAdapter(req.wxAdapter)
+      return out
+    })()
+  })
+  check('登录态失效时三个请求都被拒', authFlow.results.every((r) => r.ok === false), JSON.stringify(authFlow.results))
+  check('错误类型是 auth（不是 http/network）', authFlow.results.every((r) => r.kind === 'auth'),
+    authFlow.results.map((r) => r.kind).join(','))
+  // 三个请求共用同一个刷新 Promise，所以中间那个拿到的是刷新接口的原始报错；
+  // 第三个可能在「刷新已失败 + token 已清」之后才轮到，于是拿到本地的「登录已过期」。
+  // 两者都是 auth，都是要的结论——这里要钉住的是「网络上的刷新只发生一次」。
+  check('并发 3 个 401 只刷新一次', authFlow.refreshCalls === 1, `刷新 ${authFlow.refreshCalls} 次`)
+  check('刷新失败后清空本地 token', authFlow.access === '' && authFlow.refresh === '',
+    `access=${authFlow.access} refresh=${authFlow.refresh}`)
+
 
   const failed = results.filter((r) => !r.ok)
   console.log(`\n${'='.repeat(64)}`)
