@@ -10,7 +10,7 @@
     "enhance": true,
     "postcss": true,
     "minified": true,
-    "ignoreUploadUnusedFiles": true,
+    "ignoreUploadUnusedFiles": false,
     "compileWorklet": false,
     "uglifyFileName": false,
     "uploadWithSourceMap": true,
@@ -38,12 +38,34 @@
       {
         "type": "folder",
         "value": "node_modules"
-      }
-    ],
-    "include": [
+      },
       {
         "type": "folder",
-        "value": "assets"
+        "value": "artifacts"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "scripts"
+      },
+      {
+        "type": "folder",
+        "value": "tests"
+      },
+      {
+        "type": "file",
+        "value": "README.md"
+      },
+      {
+        "type": "file",
+        "value": "package-lock.json"
+      },
+      {
+        "type": "file",
+        "value": "preview_qr.png"
       }
     ]
   },

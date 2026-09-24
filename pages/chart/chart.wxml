@@ -1,0 +1,152 @@
+<view class="page" wx:if="{{ready}}">
+  <view class="alert" wx:if="{{error}}">{{error}}</view>
+
+  <view class="chart-card">
+    <view class="chart-stripe"></view>
+
+    <!-- 命盘信息头（T-1.23）-->
+    <view class="head">
+      <view class="head-line">
+        <view class="head-item">
+          <text class="head-key">{{genderLabel}}：</text>
+          <text class="head-name">{{name ? name : '无标注'}}</text>
+        </view>
+        <view class="head-item head-right">
+          <text class="head-key">气数：</text>
+          <text class="head-val truncate">{{jieQi}}</text>
+        </view>
+      </view>
+      <view class="head-line">
+        <view class="head-item">
+          <text class="head-key">阴历：</text>
+          <text class="head-name truncate">{{lunarDate}}</text>
+        </view>
+        <view class="head-item head-right">
+          <text class="head-key">阳历：</text>
+          <text class="head-val truncate {{failed ? 'head-fail' : ''}}">{{solarDate}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 基本 / 专业切换（T-1.10）-->
+    <view class="view-tabs">
+      <view class="view-tab {{viewTab === 'BASIC' ? 'view-tab-on' : ''}}" data-tab="BASIC" bindtap="onSwitchView">
+        <text>基本排盘</text>
+        <view class="view-underline" wx:if="{{viewTab === 'BASIC'}}"></view>
+      </view>
+      <view class="view-tab {{viewTab === 'PRO' ? 'view-tab-on' : ''}}" data-tab="PRO" bindtap="onSwitchView">
+        <text>专业细盘</text>
+        <view class="view-underline" wx:if="{{viewTab === 'PRO'}}"></view>
+      </view>
+    </view>
+
+    <!-- 匹配失败告警条（T-1.24）-->
+    <view class="fail-bar" wx:if="{{failed}}">
+      <ui-icon name="triangle-alert" color="#b91c1c" size="{{32}}" />
+      <text class="fail-text">注意：输入组合在 1900-2100 年间无对应日期，以下排盘仅供参考。</text>
+    </view>
+
+    <!-- 命盘表格 -->
+    <view class="grid">
+      <view class="grid-row">
+        <view class="grid-label grid-label-tap" bindtap="onTogglePro" wx:if="{{viewTab !== 'BASIC'}}">
+          <text>日期</text>
+          <ui-icon name="{{proExpanded ? 'chevron-up' : 'chevron-down'}}" color="#a8a29e" size="{{22}}" />
+        </view>
+        <view class="grid-label" wx:else><text>日期</text></view>
+        <view class="grid-cell grid-colhead {{colCls[index]}}" style="width: {{cellWidth}}" wx:for="{{gridCols}}" wx:key="label">
+          <text class="col-label {{colCls[index] ? 'col-label-four' : ''}}">{{item.label}}</text>
+          <text class="col-sub" wx:if="{{item.sub}}">{{item.sub}}</text>
+        </view>
+      </view>
+
+      <block wx:for="{{gridRows}}" wx:for-item="row" wx:for-index="ri" wx:key="key">
+        <view class="grid-row" wx:if="{{viewTab === 'BASIC' || proExpanded || ri < 3}}">
+          <view class="grid-label">{{row.label}}</view>
+          <view class="grid-cell {{colCls[ci]}}" style="width: {{cellWidth}}" wx:for="{{row.cells}}" wx:for-item="cell" wx:for-index="ci" wx:key="ci">
+            <text class="cell-dash" wx:if="{{cell.kind === 'dash'}}">—</text>
+            <text class="badge {{cell.cls}}" wx:elif="{{cell.kind === 'badge'}}">{{cell.text}}</text>
+            <text class="cell-big {{cell.cls}}" wx:elif="{{cell.kind === 'big'}}">{{cell.text}}</text>
+            <block wx:elif="{{cell.kind === 'list'}}">
+              <text class="cell-line {{sub.cls}}" wx:for="{{cell.items}}" wx:for-item="sub" wx:for-index="si" wx:key="si">{{sub.t}}</text>
+            </block>
+            <text class="cell-text {{cell.cls}}" wx:elif="{{cell.kind === 'text'}}">{{cell.text}}</text>
+            <block wx:elif="{{cell.kind === 'tags'}}">
+              <view class="cell-tags" wx:if="{{!cell.empty}}">
+                <text class="mini-tag" wx:for="{{cell.items}}" wx:for-item="tag" wx:for-index="ti" wx:key="ti">{{tag}}</text>
+              </view>
+              <text class="cell-dash" wx:else>—</text>
+            </block>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 大运 / 流年（T-1.11）-->
+    <view class="luck" wx:if="{{viewTab !== 'BASIC' && hasLuck}}">
+      <view class="luck-bar">
+        <view class="luck-meta"><text class="mk">大运:</text><text class="mv mv-amber">{{luckDirection}}</text></view>
+        <view class="luck-meta"><text class="mk">起运:</text><text class="mv">{{qiYunText}}</text></view>
+        <view class="luck-meta"><text class="mk">交运:</text><text class="mv">{{jiaoYunText}}</text></view>
+        <view class="luck-meta" wx:if="{{siLingText}}"><text class="mk">司令:</text><text class="mv">{{siLingText}}</text></view>
+      </view>
+
+      <view class="yun-head">
+        <view class="yun-title">
+          <ui-icon name="calendar" color="#881337" size="{{28}}" />
+          <text class="yun-title-text">运限推演</text>
+          <text class="pill-amber" wx:if="{{xuSui}}">虚岁 {{xuSui}} 岁</text>
+        </view>
+        <text class="pill-amber" wx:if="{{selYear}}">{{selYear}}年</text>
+      </view>
+
+      <view class="luck-cols">
+        <view class="luck-col {{item.isSelected ? 'lc-sel' : (item.isCurrent ? 'lc-cur' : '')}}"
+          wx:for="{{luckPillars}}" wx:key="key" data-idx="{{item.idx}}" bindtap="onPickLuck">
+          <view class="lc-head {{item.isSelected ? 'lc-head-sel' : (item.isCurrent ? 'lc-head-cur' : '')}}">
+            <text class="lc-year">{{item.year}}</text>
+            <text class="lc-gz {{item.isSelected || item.isCurrent ? 'lc-gz-on' : ''}}">{{item.label}}</text>
+            <text class="lc-age">{{item.startAge}}岁</text>
+          </view>
+          <view class="lc-item {{ln.cls}}" wx:for="{{item.liuNian}}" wx:for-item="ln" wx:key="key"
+            data-year="{{ln.year}}" data-idx="{{item.idx}}" bindtap="onPickLiuNian">{{ln.ganZhi}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 辅助信息（T-1.13 / T-1.14）-->
+  <view class="card">
+    <view class="section-title">五行统计</view>
+    <view class="wx-row">
+      <view class="wx-item" wx:for="{{wuXing}}" wx:key="element">
+        <text class="wx-el {{item.cls}}">{{item.element}}</text>
+        <text class="wx-count">{{item.count}}</text>
+      </view>
+    </view>
+    <text class="aux-desc" wx:if="{{strengthDesc}}">日主{{strengthLevel}}：{{strengthDesc}}</text>
+    <view class="row">
+      <text class="row-key">生肖 / 星座</text>
+      <text class="row-val">{{zodiac}} / {{constellation}}</text>
+    </view>
+    <view class="row">
+      <text class="row-key">节气</text>
+      <text class="row-val">{{jieQi}}</text>
+    </view>
+    <view class="row" wx:if="{{siLingText}}">
+      <text class="row-key">月令司令</text>
+      <text class="row-val">{{siLingText}}</text>
+    </view>
+  </view>
+
+  <!-- 结果页操作区（T-1.17 / T-1.18）-->
+  <view class="actions">
+    <button class="btn ghost act-btn" bindtap="onBack">返回</button>
+    <button class="btn primary act-btn" open-type="share">分享命盘</button>
+  </view>
+</view>
+
+<view class="page" wx:else>
+  <view class="alert" wx:if="{{error}}">{{error}}</view>
+  <view class="card" wx:else><text class="desc">正在排盘…</text></view>
+</view>

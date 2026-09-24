@@ -1,0 +1,382 @@
+/* 命盘结果页专有样式。颜色/字号/圆角一律取 app.wxss 的变量。 */
+
+.chart-card {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1rpx solid var(--stone-200);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}
+
+/* 顶部渐变条：rose-900 → amber-700 → rose-900 */
+.chart-stripe {
+  height: 8rpx;
+  background: linear-gradient(to right, #881337, #b45309, #881337);
+}
+
+/* ---------- 信息头 ---------- */
+.head {
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--paper-warm);
+  border-bottom: 1rpx solid var(--stone-200);
+}
+
+.head-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  line-height: 1.7;
+}
+
+.head-line + .head-line { margin-top: 6rpx; }
+
+.head-item {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+}
+
+.head-right { justify-content: flex-end; }
+
+.head-key {
+  flex-shrink: 0;
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+}
+
+.head-name {
+  color: var(--stone-800);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.head-val {
+  color: var(--stone-500);
+  font-size: var(--fs-xs);
+}
+
+.head-fail {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ---------- 视图切换 ---------- */
+.view-tabs {
+  display: flex;
+  background: #fdfdfb;
+  border-bottom: 1rpx solid var(--stone-200);
+}
+
+.view-tab {
+  position: relative;
+  flex: 1;
+  padding: 22rpx 0;
+  text-align: center;
+  color: var(--stone-400);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 2rpx;
+}
+
+.view-tab-on { color: var(--ink); }
+
+.view-underline {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 76rpx;
+  height: 4rpx;
+  margin-left: -38rpx;
+  border-radius: var(--radius-full);
+  background: var(--amber-700);
+}
+
+/* ---------- 匹配失败告警 ---------- */
+.fail-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--danger-bg);
+  border-bottom: 1rpx solid var(--danger-bd);
+}
+
+.fail-text {
+  flex: 1;
+  color: var(--danger);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+/* ---------- 命盘表格 ---------- */
+.grid {
+  border-top: 1rpx solid var(--stone-200);
+  border-left: 1rpx solid var(--stone-200);
+}
+
+.grid-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.grid-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  width: 72rpx;
+  flex-shrink: 0;
+  padding: var(--sp-2) 0;
+  background: var(--stone-50);
+  border-right: 1rpx solid var(--stone-200);
+  border-bottom: 1rpx solid var(--stone-200);
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.grid-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 62rpx;
+  padding: var(--sp-1) 2rpx;
+  border-right: 1rpx solid var(--stone-200);
+  border-bottom: 1rpx solid var(--stone-200);
+  text-align: center;
+}
+
+.grid-colhead {
+  padding: 10rpx 2rpx;
+  min-height: 56rpx;
+}
+
+.col-label {
+  color: var(--stone-800);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: 1rpx;
+}
+
+.col-label-four { color: var(--amber-800); }
+
+.col-sub {
+  margin-top: 2rpx;
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+}
+
+.col-four { background: rgba(255, 251, 235, 0.5); }
+.col-first { border-left: 3rpx solid var(--amber-200); }
+.col-last { border-right: 3rpx solid var(--amber-200); }
+
+.badge {
+  padding: 2rpx 10rpx;
+  border: 1rpx solid transparent;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.badge-male {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+
+.badge-female {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+.badge-plain { color: var(--stone-500); }
+
+.cell-big {
+  font-size: 40rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.cell-line {
+  display: block;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.cell-sub { color: var(--stone-500); font-weight: 400; }
+
+.cell-text { font-size: var(--fs-xs); line-height: 1.4; }
+.cell-strong { color: var(--stone-700); font-weight: 600; }
+.cell-mid { color: var(--stone-600); font-weight: 600; }
+.cell-soft { color: var(--stone-500); }
+.cell-dash { color: var(--stone-200); font-size: var(--fs-xs); }
+
+.cell-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4rpx;
+}
+
+.mini-tag {
+  padding: 0 6rpx;
+  background: var(--amber-50);
+  border: 1rpx solid var(--amber-200);
+  border-radius: 6rpx;
+  color: var(--amber-800);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+/* ---------- 大运 / 流年 ---------- */
+.luck {
+  border-top: 1rpx solid var(--stone-200);
+  background: #fdfdfb;
+}
+
+.luck-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx var(--sp-4);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--stone-50);
+  border-bottom: 1rpx solid var(--stone-200);
+}
+
+.luck-meta { display: flex; align-items: baseline; gap: 6rpx; }
+
+.mk { color: var(--stone-400); font-size: var(--fs-xs); }
+.mv { color: var(--stone-700); font-size: var(--fs-xs); font-weight: 600; }
+.mv-amber { color: var(--amber-800); }
+
+.yun-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx var(--sp-3);
+  border-bottom: 1rpx solid var(--line);
+}
+
+.yun-title { display: flex; align-items: center; gap: 8rpx; }
+
+.yun-title-text {
+  color: #881337;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.pill-amber {
+  padding: 2rpx 14rpx;
+  background: var(--amber-50);
+  border: 1rpx solid var(--amber-200);
+  border-radius: var(--radius-full);
+  color: var(--amber-900);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.luck-cols {
+  display: flex;
+  background: #ffffff;
+}
+
+.luck-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1rpx solid var(--stone-100);
+}
+
+.luck-col:last-child { border-right: none; }
+
+.lc-sel { background: rgba(255, 251, 235, 0.5); }
+.lc-cur { background: rgba(255, 251, 235, 0.15); }
+
+.lc-head {
+  padding: 8rpx 0;
+  border-bottom: 1rpx solid var(--line);
+  text-align: center;
+}
+
+.lc-head-sel { background: rgba(254, 243, 199, 0.4); }
+.lc-head-cur { background: rgba(255, 251, 235, 0.3); }
+
+.lc-year { display: block; color: var(--stone-400); font-size: var(--fs-xs); line-height: 1.2; }
+
+.lc-gz {
+  display: block;
+  margin: 2rpx 0;
+  color: var(--stone-700);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.lc-gz-on { color: var(--amber-900); }
+
+.lc-age { display: block; color: var(--stone-400); font-size: var(--fs-xs); line-height: 1.2; }
+
+.lc-item {
+  padding: 4rpx 0;
+  text-align: center;
+  color: var(--stone-500);
+  font-size: var(--fs-xs);
+}
+
+.ln-now {
+  background: var(--cinnabar);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ln-sel {
+  background: var(--amber-500);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* ---------- 辅助信息 ---------- */
+.wx-row {
+  display: flex;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.wx-item {
+  flex: 1;
+  padding: var(--sp-3) 0;
+  background: var(--stone-50);
+  border: 1rpx solid var(--line);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.wx-el { display: block; font-size: var(--fs-lg); font-weight: 600; }
+.wx-count { display: block; margin-top: 4rpx; color: var(--stone-500); font-size: var(--fs-sm); }
+
+.aux-desc {
+  display: block;
+  margin-bottom: var(--sp-2);
+  color: var(--stone-500);
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+}
+
+/* ---------- 操作区 ---------- */
+.actions {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.act-btn {
+  flex: 1;
+  margin: 0;
+}

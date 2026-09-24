@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/paipan/paipan",
+    "pages/chart/chart",
     "pages/huangli/huangli",
     "pages/library/library",
     "pages/profile/profile"

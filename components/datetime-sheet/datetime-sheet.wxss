@@ -1,0 +1,362 @@
+/* 日期时间选择弹层（T-1.19）。色值一律取 app.wxss 的变量。 */
+
+.sheet-mask {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+}
+
+.sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 201;
+  display: flex;
+  flex-direction: column;
+  max-height: 88vh;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--paper);
+  border-top: 1rpx solid var(--stone-200);
+  border-radius: 48rpx 48rpx 0 0;
+  box-shadow: 0 -12rpx 48rpx rgba(0, 0, 0, 0.18);
+  animation: sheet-up 0.22s ease-out;
+}
+
+@keyframes sheet-up {
+  from { transform: translateY(12%); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-5) var(--sp-4) var(--sp-3);
+}
+
+.sheet-cancel {
+  color: var(--stone-400);
+  font-size: var(--fs-lg);
+}
+
+.sheet-title {
+  color: var(--stone-500);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.sheet-head-gap { width: 60rpx; }
+
+.sheet-tabs { padding: 0 var(--sp-4) var(--sp-3); }
+
+.pane { padding: 0 var(--sp-4); }
+
+.hint {
+  display: block;
+  padding: var(--sp-2) var(--sp-1);
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+/* ---------- 公历 12 位数字快填 ---------- */
+.quick {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 12rpx 16rpx;
+  background: var(--stone-100);
+  border-radius: var(--radius-md);
+}
+
+.quick-input {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--stone-700);
+}
+
+.quick-ph { color: var(--stone-300); }
+
+.quick-btn {
+  flex-shrink: 0;
+  padding: 10rpx 28rpx;
+  background: var(--ink);
+  color: #ffffff;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.err {
+  display: block;
+  padding: 8rpx var(--sp-1) 0;
+  color: var(--danger);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+/* ---------- 滚轮 ---------- */
+.units {
+  display: flex;
+  padding: var(--sp-2) 0 0;
+}
+
+.unit {
+  flex: 1;
+  text-align: center;
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.wheel {
+  width: 100%;
+  height: 440rpx;
+  margin-top: 8rpx;
+  border-top: 1rpx solid var(--line);
+}
+
+.wheel-item {
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  color: var(--stone-400);
+  font-size: 30rpx;
+}
+
+.wheel-item-strong {
+  color: var(--stone-700);
+  font-weight: 600;
+}
+
+/* ---------- 四柱总览 ---------- */
+.overview {
+  display: flex;
+  gap: var(--sp-1);
+  margin-bottom: var(--sp-3);
+}
+
+.ov-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  padding: 14rpx 0;
+  border: 1rpx solid var(--stone-200);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+}
+
+.ov-col-on {
+  border-color: var(--amber-200);
+  background: var(--amber-50);
+}
+
+.ov-label {
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.ov-cell {
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-width: 2rpx;
+  border-style: solid;
+  border-radius: 50%;
+  font-size: 38rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.box-empty {
+  background: var(--stone-50);
+  border-color: var(--stone-200);
+  color: var(--stone-300);
+}
+
+.direct-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sp-1) var(--sp-3);
+}
+
+.direct-range {
+  color: var(--stone-500);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.direct-bar-btns {
+  display: flex;
+  gap: var(--sp-2);
+}
+
+.mini-btn {
+  padding: 8rpx 26rpx;
+  border-radius: var(--radius-full);
+  border: 1rpx solid transparent;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.mini-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #ffffff;
+}
+
+.mini-off {
+  background: var(--stone-100);
+  border-color: var(--stone-200);
+  color: var(--stone-400);
+}
+
+.mini-danger {
+  background: var(--danger-bg);
+  border-color: var(--danger-bd);
+  color: var(--danger);
+}
+
+/* ---------- 步骤选择区 ---------- */
+.step-box {
+  padding: var(--sp-3);
+  background: var(--stone-50);
+  border: 1rpx solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.step-blocker {
+  padding: 44rpx var(--sp-3);
+  text-align: center;
+  color: var(--stone-400);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.step-hint {
+  display: block;
+  margin-bottom: var(--sp-2);
+  text-align: center;
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.opt-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.opt-grid-5 > .opt { width: calc((100% - 48rpx) / 5); }
+.opt-grid-3 > .opt { width: calc((100% - 24rpx) / 3); }
+.opt-grid-6 > .opt { width: calc((100% - 60rpx) / 6); }
+
+.opt {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 84rpx;
+  box-sizing: border-box;
+  border-width: 2rpx;
+  border-style: solid;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.opt-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #ffffff;
+}
+
+.opt-plain {
+  background: #ffffff;
+  border-color: var(--stone-200);
+  color: var(--stone-600);
+}
+
+.opt-on-text { color: #ffffff; }
+
+/* ---------- 匹配时间 ---------- */
+.match-box {
+  padding: var(--sp-3);
+  background: var(--stone-50);
+  border: 1rpx solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.match-empty {
+  display: block;
+  padding: var(--sp-3) 0;
+  text-align: center;
+  color: var(--stone-400);
+  font-size: var(--fs-xs);
+}
+
+.match-list {
+  max-height: 420rpx;
+}
+
+.match-item {
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+  border: 1rpx solid var(--stone-100);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+}
+
+.match-on {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.match-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.match-solar {
+  color: var(--stone-700);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.match-lunar {
+  display: block;
+  margin-top: 4rpx;
+  color: var(--stone-500);
+  font-size: var(--fs-xs);
+}
+
+.match-check {
+  color: #ffffff;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+.match-on .match-solar,
+.match-on .match-lunar { color: #ffffff; }
+
+/* ---------- 底部按钮 ---------- */
+.sheet-foot {
+  padding: var(--sp-4);
+  background: #ffffff;
+  border-top: 1rpx solid var(--line);
+}
+
+.sheet-foot .btn.block { margin-top: 0; }

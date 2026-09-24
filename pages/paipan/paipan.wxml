@@ -1,129 +1,134 @@
 <view class="page">
-  <view class="card">
-    <text class="title">四柱排盘</text>
-    <text class="desc">按传统历法推算，输入出生时间即可</text>
-
-    <view class="field">
-      <text class="field-label">出生日期</text>
-      <picker mode="date" value="{{date}}" start="1900-01-01" end="2100-12-31" bindchange="onDateChange">
-        <view class="picker">{{date}}</view>
-      </picker>
-    </view>
-
-    <view class="field">
-      <text class="field-label">出生时间</text>
-      <picker mode="time" value="{{time}}" bindchange="onTimeChange">
-        <view class="picker">{{time}}</view>
-      </picker>
+  <view class="card card-lg">
+    <!-- 姓名（T-1.22）-->
+    <view class="name-row">
+      <ui-icon name="user" color="#d6d3d1" size="{{40}}" />
+      <input class="name-input" value="{{name}}" placeholder="姓名（可选）" placeholder-class="name-ph" bindinput="onNameInput" />
     </view>
 
     <view class="field">
       <text class="field-label">性别</text>
-      <radio-group class="radios" bindchange="onGenderChange">
-        <label class="radio">
-          <radio value="MALE" checked="{{gender === 'MALE'}}" color="#b45309" />
-          <text>乾造（男）</text>
-        </label>
-        <label class="radio">
-          <radio value="FEMALE" checked="{{gender === 'FEMALE'}}" color="#b45309" />
-          <text>坤造（女）</text>
-        </label>
-      </radio-group>
+      <view class="segmented seg-300">
+        <view class="segmented-item {{gender === item.key ? 'active' : ''}}" wx:for="{{genderOptions}}" wx:key="key" data-key="{{item.key}}" bindtap="onGenderTap">{{item.label}}</view>
+      </view>
     </view>
 
-    <button class="btn primary block" bindtap="calculate">开始排盘</button>
+    <view class="field">
+      <text class="field-label">排盘模式</text>
+      <view class="segmented seg-300">
+        <view class="segmented-item {{calendarType === item.key ? 'active' : ''}}" wx:for="{{modeOptions}}" wx:key="key" data-key="{{item.key}}" bindtap="onModeTap">{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">出生日期</text>
+      <view class="field-picker" bindtap="openSheet">
+        <text class="picker-text" wx:if="{{summaryPlain}}">{{summaryPlain}}</text>
+        <view class="picker-zhu" wx:else>
+          <text class="{{item.cls}}" wx:for="{{summaryNodes}}" wx:key="index">{{item.t}}</text>
+        </view>
+        <ui-icon name="chevron-right" color="#d6d3d1" size="{{28}}" />
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">出生地点</text>
+      <picker class="field-picker" mode="region" value="{{region}}" bindchange="onRegionChange">
+        <text class="picker-text">{{regionText}}</text>
+        <ui-icon name="chevron-right" color="#d6d3d1" size="{{28}}" />
+      </picker>
+    </view>
+    <text class="geo-hint">东经 {{longitude}}° · 北纬 {{latitude}}°</text>
+
+    <!-- 高级设置（T-1.21）-->
+    <view class="advanced">
+      <view class="adv-head" bindtap="onToggleAdvanced">
+        <ui-icon name="sliders-horizontal" color="#a8a29e" size="{{24}}" />
+        <text class="adv-title">高级设置</text>
+        <text class="adv-arrow {{showAdvanced ? 'adv-arrow-on' : ''}}">▾</text>
+      </view>
+
+      <block wx:if="{{showAdvanced}}">
+        <view class="adv-row">
+          <view class="adv-text">
+            <text class="adv-name">真太阳时校正</text>
+            <text class="adv-desc">按出生经度与日期修正真太阳时</text>
+          </view>
+          <view class="switch {{useTrueSolarTime ? 'switch-on' : ''}}" bindtap="onToggleTrueSolar">
+            <view class="switch-knob"></view>
+          </view>
+        </view>
+
+        <view class="adv-row">
+          <view class="adv-text">
+            <text class="adv-name">出生时区</text>
+            <text class="adv-desc">当地钟表时间对应时区（默认东八区）</text>
+          </view>
+          <picker mode="selector" range="{{timezoneLabels}}" value="{{timezoneIndex}}" bindchange="onTimezoneChange">
+            <view class="adv-select">{{timezoneText}}</view>
+          </picker>
+        </view>
+
+        <view class="adv-row">
+          <view class="adv-text">
+            <text class="adv-name">晚子时换日</text>
+            <text class="adv-desc">{{sect === 1 ? '23 点后即算次日（晚子时换日）' : '0 点后才算次日（子正换日）'}}</text>
+          </view>
+          <view class="switch {{sect === 1 ? 'switch-on' : ''}}" bindtap="onToggleSect">
+            <view class="switch-knob"></view>
+          </view>
+        </view>
+
+        <view class="adv-row">
+          <view class="adv-text">
+            <text class="adv-name">手动经度</text>
+            <text class="adv-desc">留空则使用所选地点经度</text>
+          </view>
+          <view class="switch {{useManualLongitude ? 'switch-on' : ''}}" bindtap="onToggleManualLongitude">
+            <view class="switch-knob"></view>
+          </view>
+        </view>
+
+        <input wx:if="{{useManualLongitude}}" class="adv-input" type="digit" value="{{manualLongitude}}"
+          placeholder="东经为正，如 116.42" placeholder-class="name-ph" bindinput="onManualLongitudeInput" />
+      </block>
+    </view>
+
+    <button class="btn primary block" bindtap="onCalculate">开始排盘</button>
+
+    <!-- 即时局预览（T-1.20）-->
+    <view class="live">
+      <view class="clock">
+        <view class="clock-tick" style="transform: rotate(0deg) translateY(-40rpx)"></view>
+        <view class="clock-tick" style="transform: rotate(90deg) translateY(-40rpx)"></view>
+        <view class="clock-tick" style="transform: rotate(180deg) translateY(-40rpx)"></view>
+        <view class="clock-tick" style="transform: rotate(270deg) translateY(-40rpx)"></view>
+        <view class="clock-hand clock-hand-hour" style="transform: rotate({{hourDeg}}deg)"></view>
+        <view class="clock-hand clock-hand-minute" style="transform: rotate({{minuteDeg}}deg)"></view>
+        <view class="clock-dot"></view>
+      </view>
+      <view class="live-body">
+        <view class="live-pillars">
+          <view class="live-pillar" wx:for="{{nowPillars}}" wx:key="label">
+            <text class="live-label">{{item.label}}</text>
+            <view class="char-box {{item.ganCls}}">{{item.gan}}</view>
+            <view class="char-box {{item.zhiCls}}">{{item.zhi}}</view>
+          </view>
+        </view>
+        <text class="live-line">农历: {{nowLunar}}</text>
+        <text class="live-line live-line-sub">公历: {{nowSolar}}</text>
+      </view>
+    </view>
   </view>
-
-  <view class="alert mt-3" wx:if="{{error}}">{{error}}</view>
-
-  <block wx:if="{{result}}">
-    <view class="card">
-      <text class="title">四柱</text>
-      <view class="pillars">
-        <view class="pillar" wx:for="{{pillars}}" wx:key="label">
-          <text class="pillar-label">{{item.label}}</text>
-          <view class="ganzhi">
-            <text class="gz {{item.ganClass}}">{{item.gan}}</text>
-            <text class="gz {{item.zhiClass}}">{{item.zhi}}</text>
-          </view>
-          <text class="cell">{{item.shiShen}}</text>
-          <view class="cell-row">
-            <text class="cell-key">藏干</text>
-            <text class="cell">{{item.cangGan}}</text>
-          </view>
-          <view class="cell-row">
-            <text class="cell-key">十神</text>
-            <view class="stack">
-              <text class="cell" wx:for="{{item.cangGanShiShen}}" wx:for-item="shiShen" wx:key="*this">{{shiShen}}</text>
-            </view>
-          </view>
-          <view class="cell-row">
-            <text class="cell-key">纳音</text>
-            <text class="cell">{{item.naYin}}</text>
-          </view>
-          <view class="cell-row">
-            <text class="cell-key">星运</text>
-            <text class="cell">{{item.xingYun}}</text>
-          </view>
-          <view class="cell-row">
-            <text class="cell-key">空亡</text>
-            <text class="cell">{{item.xunKong}}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <view class="card">
-      <text class="title">基础信息</text>
-      <view class="row">
-        <text class="row-key">公历</text>
-        <text class="row-val">{{result.solarDate}}</text>
-      </view>
-      <view class="row">
-        <text class="row-key">农历</text>
-        <text class="row-val">{{result.lunarDate}}</text>
-      </view>
-      <view class="row">
-        <text class="row-key">节气</text>
-        <text class="row-val">{{result.jieQi}}</text>
-      </view>
-      <view class="row">
-        <text class="row-key">生肖 / 星座</text>
-        <text class="row-val">{{result.zodiac}} / {{result.constellation}}（{{result.weekDay}}）</text>
-      </view>
-      <view class="row">
-        <text class="row-key">日主</text>
-        <text class="row-val">{{result.dayMasterElement}}　{{result.strengthLevel}}</text>
-      </view>
-      <view class="row">
-        <text class="row-key">大运</text>
-        <text class="row-val">{{result.yunDirection}}　{{result.qiYunText}}</text>
-      </view>
-      <view class="row" wx:if="{{result.siLingDesc}}">
-        <text class="row-key">月令司令</text>
-        <text class="row-val">{{result.siLingDesc}}</text>
-      </view>
-    </view>
-
-    <view class="card">
-      <text class="title">五行统计</text>
-      <view class="wuxing">
-        <view class="wx-item" wx:for="{{result.wuXing}}" wx:key="element">
-          <text class="wx-el {{item.cls}}">{{item.element}}</text>
-          <text class="wx-count">{{item.count}}</text>
-        </view>
-      </view>
-      <text class="desc" wx:if="{{result.strengthDesc}}">{{result.strengthDesc}}</text>
-    </view>
-
-    <view class="card" wx:if="{{result.shenSha.length}}">
-      <text class="title">神煞</text>
-      <view class="tags">
-        <view class="tag" wx:for="{{result.shenSha}}" wx:key="name">
-          <text class="tag-name">{{item.name}}</text>
-          <text class="tag-pos">{{item.pos}}</text>
-        </view>
-      </view>
-    </view>
-  </block>
 </view>
+
+<datetime-sheet
+  show="{{showSheet}}"
+  tab="{{sheetTab}}"
+  solar="{{solar}}"
+  lunar="{{lunar}}"
+  direct="{{direct}}"
+  sect="{{sect}}"
+  bind:confirm="onSheetConfirm"
+  bind:close="onSheetClose"
+/>

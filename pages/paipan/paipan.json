@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "四柱排盘"
+  "navigationBarTitleText": "四柱排盘",
+  "usingComponents": {
+    "datetime-sheet": "/components/datetime-sheet/datetime-sheet"
+  }
 }

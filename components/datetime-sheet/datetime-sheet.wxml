@@ -1,0 +1,136 @@
+<view class="sheet-mask" wx:if="{{show}}" bindtap="onClose" catchtouchmove="noop"></view>
+
+<view class="sheet" wx:if="{{show}}" catchtouchmove="noop">
+  <view class="sheet-head">
+    <text class="sheet-cancel" bindtap="onClose">取消</text>
+    <text class="sheet-title">选择出生时间</text>
+    <view class="sheet-head-gap"></view>
+  </view>
+
+  <view class="sheet-tabs">
+    <view class="segmented">
+      <view class="segmented-item {{inner.tab === 'SOLAR' ? 'active' : ''}}" data-tab="SOLAR" bindtap="switchTab">公历</view>
+      <view class="segmented-item {{inner.tab === 'LUNAR' ? 'active' : ''}}" data-tab="LUNAR" bindtap="switchTab">农历</view>
+      <view class="segmented-item {{inner.tab === 'DIRECT' ? 'active' : ''}}" data-tab="DIRECT" bindtap="switchTab">四柱</view>
+    </view>
+  </view>
+
+  <!-- ============ 公历 ============ -->
+  <view class="pane" wx:if="{{inner.tab === 'SOLAR'}}">
+    <view class="quick">
+      <input class="quick-input" type="number" value="{{solarInput}}" placeholder="直接输入 199101010255（年月日时分）" placeholder-class="quick-ph" bindinput="onSolarInput" />
+      <view class="quick-btn" bindtap="parseSolarInput">确定</view>
+    </view>
+    <text class="err" wx:if="{{inputError}}">{{inputError}}</text>
+    <view class="units">
+      <text class="unit">年</text><text class="unit">月</text><text class="unit">日</text><text class="unit">时</text><text class="unit">分</text>
+    </view>
+    <picker-view class="wheel" indicator-style="height: 96rpx;" value="{{solarIdx}}" bindchange="onSolarWheel">
+      <picker-view-column>
+        <view class="wheel-item" wx:for="{{yearLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item" wx:for="{{monthLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item wheel-item-strong" wx:for="{{solarDayLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item" wx:for="{{hourLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item" wx:for="{{minuteLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+    </picker-view>
+  </view>
+
+  <!-- ============ 农历 ============ -->
+  <view class="pane" wx:if="{{inner.tab === 'LUNAR'}}">
+    <text class="hint">农历日期（闰月自动出现在月份列中）</text>
+    <view class="units">
+      <text class="unit">年</text><text class="unit">月</text><text class="unit">日</text><text class="unit">时</text><text class="unit">分</text>
+    </view>
+    <picker-view class="wheel" indicator-style="height: 96rpx;" value="{{lunarIdx}}" bindchange="onLunarWheel">
+      <picker-view-column>
+        <view class="wheel-item" wx:for="{{yearLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item wheel-item-strong" wx:for="{{lunarMonthLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item wheel-item-strong" wx:for="{{lunarDayLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item" wx:for="{{hourLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view class="wheel-item" wx:for="{{minuteLabels}}" wx:key="*this">{{item}}</view>
+      </picker-view-column>
+    </picker-view>
+  </view>
+
+  <!-- ============ 四柱 ============ -->
+  <view class="pane" wx:if="{{inner.tab === 'DIRECT'}}">
+    <view class="overview">
+      <view class="ov-col {{item.active ? 'ov-col-on' : ''}}" wx:for="{{directCells}}" wx:key="key">
+        <text class="ov-label">{{item.label}}</text>
+        <view class="ov-cell {{item.ganCls}}" data-step="{{item.ganKey}}" bindtap="jumpToStep">{{item.gan}}</view>
+        <view class="ov-cell {{item.zhiCls}}" data-step="{{item.zhiKey}}" bindtap="jumpToStep">{{item.zhi}}</view>
+      </view>
+    </view>
+
+    <view class="direct-bar">
+      <text class="direct-range">查找范围：1900-2100</text>
+      <view class="direct-bar-btns">
+        <view class="mini-btn {{directComplete ? 'mini-on' : 'mini-off'}}" bindtap="confirmDirect">确认</view>
+        <view class="mini-btn mini-danger" bindtap="clearDirect">清除</view>
+      </view>
+    </view>
+
+    <block wx:if="{{pickerVisible}}">
+      <view class="step-box step-blocker" wx:if="{{stepBlocker}}">
+        <text>{{stepBlocker}}</text>
+      </view>
+      <block wx:else>
+        <view class="step-box" wx:if="{{stepIsStem}}">
+          <text class="step-hint">{{stepTitle}}</text>
+          <view class="opt-grid opt-grid-5">
+            <view class="{{item.cls}}" wx:for="{{ganOptions}}" wx:key="v" data-v="{{item.v}}" bindtap="pickDirect">{{item.v}}</view>
+          </view>
+        </view>
+        <view class="step-box" wx:if="{{stepIsBranch}}">
+          <text class="step-hint">{{stepTitle}}</text>
+          <view class="opt-grid opt-grid-3">
+            <view class="{{item.cls}}" wx:for="{{zhiOptions}}" wx:key="v" data-v="{{item.v}}" bindtap="pickDirect">{{item.v}}</view>
+          </view>
+        </view>
+        <view class="step-box" wx:if="{{stepIsMonth || stepIsHour}}">
+          <text class="step-hint">{{stepTitle}}</text>
+          <view class="opt-grid opt-grid-6">
+            <view class="{{item.cls}}" wx:for="{{pillarOptions}}" wx:key="key" data-v="{{item.key}}" bindtap="pickDirect">
+              <text class="{{item.ganCls}}">{{item.gan}}</text><text class="{{item.zhiCls}}">{{item.zhi}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </block>
+
+    <view class="match-box" wx:else>
+      <text class="step-hint">匹配时间（1900-2100）</text>
+      <text class="match-empty" wx:if="{{matchEmpty}}">范围内无匹配时间</text>
+      <scroll-view class="match-list" scroll-y wx:else>
+        <view class="match-item {{item.selected ? 'match-on' : ''}}" wx:for="{{matches}}" wx:key="key" data-key="{{item.key}}" bindtap="selectMatch">
+          <view class="match-line">
+            <text class="match-solar">阳历：{{item.solar}}</text>
+            <text class="match-check" wx:if="{{item.selected}}">已选 ✓</text>
+          </view>
+          <text class="match-lunar">阴历：{{item.lunar}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view class="sheet-foot">
+    <button class="btn primary block" bindtap="onConfirm">确定</button>
+  </view>
+</view>

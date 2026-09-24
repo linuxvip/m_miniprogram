@@ -1,7 +1,10 @@
 # 命海拾遗 · 微信小程序
 
 `www.minghaishiyi.cn` 的微信小程序版本。定位是**传统文化与历法工具**：
-四柱排盘、黄历、命例库、文章。
+四柱排盘、黄历、命例库（文章暂缓）。
+
+当前进度：**排盘主链路已完工**（输入页 / 三态日期弹层 / 命盘页），并有单测 + 界面 e2e 兜底；
+黄历、命例库、微信登录尚未开始。逐项进度见 [`docs/工作任务清单.md`](docs/工作任务清单.md)。
 
 ## 与网页端的关系
 
@@ -40,18 +43,34 @@ npm install     # 会执行 postinstall，为 npm 包补齐入口（原因见下
 ```
 app.js / app.json / app.wxss    全局入口、页面注册、全局样式与设计变量
 pages/
-  paipan/                       四柱排盘（输入 + 命盘展示）
+  paipan/                       排盘输入页（姓名 / 性别 / 模式 / 日期 / 地点 / 高级设置 / 即时局）
+  chart/                        命盘页（基本盘 / 专业细盘 / 大运流年 / 神煞 / 五行 / 分享）
+  huangli/ library/ profile/    黄历 / 命例库 / 我的（占位页）
+components/
+  datetime-sheet/               日期时间弹层（公历 / 农历 / 四柱 三态）
+  ui-icon/                      lucide 图标（SVG data URI，全局注册）
 utils/
   bazi/                         排盘算法（由网页端转译而来，见下）
+  calendar.js                   历法纯函数（农历换算 / 五虎遁 / 五鼠遁）
+  datetimeSheet.js              弹层状态机（纯函数，单测覆盖）
+  areaData.js                   省→市 + 经纬度（由网页端 areaData.ts 生成）
+  chartRoute.js                 排盘参数 ↔ URL query（分享用）
+  preferences.js                排盘偏好本地记忆
+assets/tabbar/                  tabBar 图标（PNG，由脚本生成）
 scripts/
   fix-npm-entry.cjs             绕过开发者工具的 npm 入口解析缺陷
   gen-bazi-golden.js            重新生成算法快照
+  gen-tabbar-icons.cjs          生成 tabBar 图标
+  gen-area-data.cjs             从网页端生成 areaData.js
+  e2e/smoke.js                  界面 e2e（真点界面，84 项断言）
+  e2e/shots.js                  界面截图留档
 tests/
-  cases.js                      回归用例与预期四柱
-  bazi.test.js                  算法回归测试
-  bazi-golden.json              已校验的快照基准
+  bazi.test.js                  算法回归测试（快照比对）
+  datetimeSheet.test.js         弹层状态机测试
+  chartRoute.test.js            分享参数编解码测试
 docs/
   需求梳理与迁移方案.md          需求、方案、风险、实施记录
+  工作任务清单.md                逐项任务、进度与变更记录
 ```
 
 ## 排盘算法
@@ -88,6 +107,16 @@ node scripts/gen-bazi-golden.js             # 确认改动符合预期时，更�
 
 ```bash
 npm install          # 安装依赖并补齐 npm 入口
-npm test             # 算法回归测试
+npm test             # 算法 + 弹层状态机 + 分享参数单测（31 项，0.2 秒）
 npm run gen:golden   # 重新生成算法快照
+
+# 界面 e2e 与截图：要先给开发者工具开自动化通道
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli auto \
+  --project "$PWD" --auto-port 9530
+npm run e2e          -- --ws=ws://127.0.0.1:9530   # 84 项断言，约 45 秒
+npm run e2e:shots    -- --ws=ws://127.0.0.1:9530   # 12 张截图 → artifacts/e2e/shots/
 ```
+
+> 开发者工具的自动化有两个硬限制：**看不到自定义组件内部的节点**（所以弹层的滚轮、
+> 快填框只能靠 `tests/datetimeSheet.test.js` 覆盖），以及**一个会话只能扛三四次页面重载**
+> （所以截图脚本每张图都要重启一次工具）。细节见方案文档 8.2 节。
