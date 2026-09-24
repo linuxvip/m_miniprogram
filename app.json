@@ -1,0 +1,14 @@
+{
+  "pages": [
+    "pages/paipan/paipan"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "命海拾遗",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f5f5f4",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

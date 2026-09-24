@@ -1,0 +1,46 @@
+{
+  "description": "项目配置文件，详见 https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html",
+  "appid": "wx990ba3cc14bef05d",
+  "projectname": "m_miniprogram",
+  "compileType": "miniprogram",
+  "miniprogramRoot": "./",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "ignoreUploadUnusedFiles": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "simulatorPluginLibVersion": {},
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "suffix",
+        "value": ".map"
+      },
+      {
+        "type": "folder",
+        "value": "node_modules"
+      }
+    ],
+    "include": []
+  },
+  "editorSetting": {}
+}
