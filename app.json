@@ -1,6 +1,9 @@
 {
   "pages": [
-    "pages/paipan/paipan"
+    "pages/paipan/paipan",
+    "pages/huangli/huangli",
+    "pages/library/library",
+    "pages/profile/profile"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",
@@ -8,6 +11,38 @@
     "navigationBarTextStyle": "black",
     "backgroundColor": "#f5f5f4",
     "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#a8a29e",
+    "selectedColor": "#2b2320",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/paipan/paipan",
+        "text": "排盘",
+        "iconPath": "assets/tabbar/paipan.png",
+        "selectedIconPath": "assets/tabbar/paipan-active.png"
+      },
+      {
+        "pagePath": "pages/huangli/huangli",
+        "text": "黄历",
+        "iconPath": "assets/tabbar/huangli.png",
+        "selectedIconPath": "assets/tabbar/huangli-active.png"
+      },
+      {
+        "pagePath": "pages/library/library",
+        "text": "命例库",
+        "iconPath": "assets/tabbar/library.png",
+        "selectedIconPath": "assets/tabbar/library-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile-active.png"
+      }
+    ]
   },
   "style": "v2",
   "sitemapLocation": "sitemap.json"

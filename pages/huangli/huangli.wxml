@@ -1,0 +1,26 @@
+<view class="page">
+  <view class="card">
+    <text class="title">黄历</text>
+    <text class="desc">月历、节气、每日干支与时辰（下一步实现）</text>
+  </view>
+
+  <view class="card">
+    <text class="section-title">待实现内容</text>
+    <view class="row">
+      <text class="row-key">月历网格</text>
+      <text class="row-val">7 列 × 4~5 行，含节气与农历日</text>
+    </view>
+    <view class="row">
+      <text class="row-key">年 / 月选择</text>
+      <text class="row-val">1900–2100 年纵向滚动 + 月份 3 列网格</text>
+    </view>
+    <view class="row">
+      <text class="row-key">顶部信息栏</text>
+      <text class="row-val">选中时刻的四柱、生肖、农历、公历</text>
+    </view>
+    <view class="row">
+      <text class="row-key">时辰地支条</text>
+      <text class="row-val">12 个地支，点击切换时辰</text>
+    </view>
+  </view>
+</view>
