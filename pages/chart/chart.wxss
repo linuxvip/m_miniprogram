@@ -380,3 +380,63 @@
   flex: 1;
   margin: 0;
 }
+
+/* ---------------- 命例反馈（T-1.15 / T-3.4） ---------------- */
+
+.case-card {
+  position: relative;
+  margin-top: 32rpx;
+  padding: 40rpx 36rpx;
+  background: #fffbeb;
+  border: 1rpx solid var(--amber-200);
+  border-radius: 40rpx;
+  overflow: hidden;
+}
+
+.case-head {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 26rpx;
+}
+
+.case-badge {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  background: var(--amber-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.case-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.case-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--amber-900);
+}
+
+.case-source {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #b45309;
+  opacity: 0.65;
+  letter-spacing: 2rpx;
+}
+
+.case-text {
+  display: block;
+  font-size: 30rpx;
+  line-height: 1.8;
+  color: var(--stone-700);
+  white-space: pre-wrap;
+  word-break: break-word;
+}

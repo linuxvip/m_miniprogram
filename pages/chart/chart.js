@@ -13,6 +13,7 @@ import {
 import { Gender, CalendarType } from '../../utils/bazi/types.js'
 import { elementTextClass } from '../../utils/theme.js'
 import { parseChartQuery, chartShareTitle } from '../../utils/chartRoute.js'
+import { caseContextFor } from '../../utils/cases.js'
 
 /** 神煞按柱归位（与网页端 pillarPos 一致） */
 const SHENSHA_POS = [
@@ -129,6 +130,9 @@ Page({
     wuXingTotal: 0,
     strengthLevel: '',
     strengthDesc: '',
+    // 从命例库跳进来时，命例原文与来源（T-1.15）—— 自行排盘时为空，板块不渲染
+    caseFeedback: '',
+    caseSource: '',
     zodiac: '',
     constellation: ''
   },
@@ -141,6 +145,24 @@ Page({
     } catch (e) {
       this.setData({ error: `排盘失败：${e && e.message ? e.message : e}` })
     }
+    this.loadCaseContext()
+  },
+
+  /**
+   * 命例库跳过来时（T-3.4），把命例原文与来源取回来渲染。
+   * 只认 `cid` 对得上的那一条：手动排盘没有 cid，回到命盘页也不该翻出上一条命例的旧文本。
+   */
+  loadCaseContext() {
+    let app = null
+    try {
+      app = getApp()
+    } catch (e) {
+      app = null
+    }
+    const store = app && app.globalData ? app.globalData.pendingCase : null
+    const ctx = caseContextFor(this._query.cid, store)
+    if (!ctx) return
+    this.setData({ caseFeedback: ctx.feedback, caseSource: ctx.source })
   },
 
   build(query) {
@@ -327,9 +349,13 @@ Page({
     wx.switchTab({ url: '/pages/paipan/paipan' })
   },
 
+  /** 分享时丢掉 cid：接收方本地没有那条命例，带上它只会得到一个认不回来的参数 */
   serializeQuery() {
     const q = this._query || {}
-    return Object.keys(q).map((k) => `${k}=${q[k]}`).join('&')
+    return Object.keys(q)
+      .filter((k) => k !== 'cid')
+      .map((k) => `${k}=${q[k]}`)
+      .join('&')
   },
 
   onShareAppMessage() {

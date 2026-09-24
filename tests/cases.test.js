@@ -12,7 +12,8 @@ import {
   ALL, PAGE_SIZE, LABEL_KEYS, LABEL_FIELDS, PILLAR_KEYS,
   defaultFilters, genderForApi, genderFromApi, genderLabel, parseLabelTags, splitGanzhi,
   normalizeCase, buildCaseQuery, pageFromNext, filtersActive, appendCases,
-  labelPickerRow, labelPickerRows, sourcePickerRow, pickerValueAt
+  labelPickerRow, labelPickerRows, sourcePickerRow, pickerValueAt,
+  directFromGanzhi, chartQueryForCase, caseContextFor, EMPTY_FEEDBACK
 } from '../utils/cases.js'
 import { fetchCases, fetchCaseSources, CASES_PATH, SOURCES_PATH } from '../utils/casesApi.js'
 
@@ -263,6 +264,46 @@ test('pickerValueAt 防越界', () => {
   assert.equal(pickerValueAt([ALL, 'a', 'b'], 2), 'b')
   assert.equal(pickerValueAt([ALL, 'a'], 9), ALL)
   assert.equal(pickerValueAt(null, 0), ALL)
+})
+
+/* ==================== 命例 → 命盘页（T-3.4） ==================== */
+
+test('directFromGanzhi 把四柱拆成 DIRECT 模式要的八个字', () => {
+  assert.deepEqual(directFromGanzhi(['甲子', '丙寅', '戊午', '庚申']), {
+    yearGan: '甲', yearZhi: '子',
+    monthGan: '丙', monthZhi: '寅',
+    dayGan: '戊', dayZhi: '午',
+    hourGan: '庚', hourZhi: '申'
+  })
+  assert.deepEqual(directFromGanzhi(['甲子']).hourZhi, '', '缺柱给空串，calculateBaZi 那边会当不完整处理')
+  assert.deepEqual(directFromGanzhi(null).dayGan, '')
+})
+
+test('chartQueryForCase 编出 DIRECT 的 query：只带 t / g / 八个字', () => {
+  const item = normalizeCase(RAW_CASE)
+  // 值都经过 encodeURIComponent（干支会被转义），所以用 URLSearchParams 反向读
+  const params = new URLSearchParams(chartQueryForCase(item))
+
+  assert.equal(params.get('t'), 'DIRECT')
+  assert.equal(params.get('g'), 'MALE')
+  assert.equal(params.get('yg') + params.get('yz'), '甲子')
+  assert.equal(params.get('mg') + params.get('mz'), '丙寅')
+  assert.equal(params.get('dg') + params.get('dz'), '戊午')
+  assert.equal(params.get('hg') + params.get('hz'), '庚申')
+  assert.equal(params.get('tst'), '0', '四柱模式下不需要真太阳时校正')
+  assert.equal(params.has('y'), false, '没必要带公历参数')
+  assert.equal(new URLSearchParams(chartQueryForCase(normalizeCase({ id: 1, gender: 0 }))).get('g'), 'FEMALE')
+})
+
+test('caseContextFor 只认 cid 对得上的那一条', () => {
+  const store = { id: 3699, feedback: '  原文  ', source: '巾箱秘术' }
+  assert.deepEqual(caseContextFor('3699', store), { feedback: '原文', source: '巾箱秘术' })
+  assert.equal(caseContextFor(3699, store) !== null, true, '数字 / 字符串 id 都要认')
+  assert.equal(caseContextFor('3700', store), null, 'id 对不上就不显示')
+  assert.equal(caseContextFor(undefined, store), null, '手动排盘没有 cid，不该翻出上一条命例')
+  assert.equal(caseContextFor('3699', null), null)
+  assert.equal(caseContextFor('3699', { id: 3699 }), null, '没有原文时不渲染')
+  assert.equal(caseContextFor('3699', { id: 3699, feedback: EMPTY_FEEDBACK }), null, '占位文案不算原文')
 })
 
 /* ==================== 接口层 ==================== */

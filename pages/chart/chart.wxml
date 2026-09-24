@@ -139,6 +139,20 @@
     </view>
   </view>
 
+  <!-- 命例反馈（T-1.15 / T-3.4）：只有从命例库跳进来才有 -->
+  <view class="case-card" wx:if="{{caseFeedback}}">
+    <view class="case-head">
+      <view class="case-badge">
+        <ui-icon name="book-open" color="#78350f" size="{{34}}" />
+      </view>
+      <view class="case-titles">
+        <text class="case-title">古籍记述 / 实务反馈</text>
+        <text class="case-source">SOURCE: {{caseSource}}</text>
+      </view>
+    </view>
+    <text class="case-text">{{caseFeedback}}</text>
+  </view>
+
   <!-- 结果页操作区（T-1.17 / T-1.18）-->
   <view class="actions">
     <button class="btn ghost act-btn" bindtap="onBack">返回</button>

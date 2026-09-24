@@ -15,6 +15,7 @@
  *     关键词走 `label` 的 icontains（所以「职业细分」那 539 种取值用关键词而不是下拉）。
  */
 import { elementOfChar, elementTextClass } from './theme.js'
+import { buildChartQuery } from './chartRoute.js'
 
 export const ALL = 'ALL'
 export const PAGE_SIZE = 12
@@ -267,4 +268,44 @@ export const pickerValueAt = (values, index) => {
   const list = values || []
   const i = Number(index)
   return i >= 0 && i < list.length ? list[i] : ALL
+}
+
+/* ---------------- 命例 → 命盘页（T-3.4） ---------------- */
+
+/**
+ * 命例卡片 → 命盘页 DIRECT（四柱）模式的 query。
+ *
+ * 只带 `t` / `g` / 八个字：DIRECT 模式下 `calculateBaZi` 完全由四柱反推
+ * 公历时间（页头显示的是「(推算) …」），传不传公历参数结果都一样，
+ * 所以没必要把年月日时分也编进去。
+ *
+ * **反馈与来源不进 URL**：一条反馈可以几百字，encodeURIComponent 之后更长，
+ * 而 `navigateTo` 的 url 长度没有明确保证；改走 `app.globalData`，URL 里只留
+ * 命例 id（`cid`），命盘页用它把反馈认回来。顺带也避免分享链接把命例原文带出去。
+ */
+export const directFromGanzhi = (ganzhi) => {
+  const list = (ganzhi || []).map((gz) => String(gz || ''))
+  const char = (index, offset) => (list[index] || '').charAt(offset)
+  return {
+    yearGan: char(0, 0), yearZhi: char(0, 1),
+    monthGan: char(1, 0), monthZhi: char(1, 1),
+    dayGan: char(2, 0), dayZhi: char(2, 1),
+    hourGan: char(3, 0), hourZhi: char(3, 1)
+  }
+}
+
+export const chartQueryForCase = (item) => buildChartQuery({
+  type: 'DIRECT',
+  gender: item && item.gender,
+  useTrueSolarTime: false,
+  direct: directFromGanzhi(item && item.ganzhi)
+})
+
+/** 命盘页用：凭 URL 里的 cid 从 globalData 把命例反馈认回来；认不上就不显示板块 */
+export const caseContextFor = (cid, store) => {
+  if (!cid || !store) return null
+  if (String(store.id) !== String(cid)) return null
+  const feedback = typeof store.feedback === 'string' ? store.feedback.trim() : ''
+  if (!feedback || feedback === EMPTY_FEEDBACK) return null
+  return { feedback, source: store.source || '未知来源' }
 }

@@ -18,12 +18,18 @@ import { setGetImpl, SOURCES_PATH as SOURCES } from '../utils/casesApi.js'
 
 let pageConfig = null
 let appStub = { globalData: {} }
+const navigateCalls = []
 
 globalThis.Page = (config) => {
   pageConfig = config
 }
 globalThis.getApp = () => appStub
-globalThis.wx = { stopPullDownRefresh() {} }
+globalThis.wx = {
+  stopPullDownRefresh() {},
+  navigateTo(options) {
+    navigateCalls.push(options)
+  }
+}
 
 await import('../pages/library/library.js')
 
@@ -102,6 +108,7 @@ const it = (name, fn) =>
   test(name, async (t) => {
     t.after(teardown)
     appStub = { globalData: {} }
+    navigateCalls.length = 0
     setGetImpl(null)
     await fn(t)
   })
@@ -383,4 +390,39 @@ it('列表太长时只保存筛选，回来重拉第一页', async () => {
   assert.equal(appStub.globalData.libraryState.cases, null, '超过 60 条就只存筛选')
   assert.equal(appStub.globalData.libraryState.filters.gender, 'ALL')
   teardown()
+})
+
+
+/* ==================== 跳到命盘页（T-3.4） ==================== */
+
+it('点卡片跳命盘页：url 带 DIRECT 四柱，反馈走 globalData 不带进 url', async () => {
+  install(normalHandler)
+  const page = mount()
+  page.onLoad()
+  await sleep(5)
+
+  const item = page.data.cases[0]
+  page.onOpenCase({ currentTarget: { dataset: { id: item.id } } })
+
+  assert.equal(navigateCalls.length, 1)
+  const url = navigateCalls[0].url
+  assert.equal(url.indexOf('/pages/chart/chart?t=DIRECT') === 0, true)
+  assert.equal(url.indexOf('cid=' + item.id) > 0, true)
+  assert.equal(url.indexOf('yg=') > 0, true)
+  assert.equal(url.indexOf('feedback') === -1, true, '原文不进 url')
+
+  const saved = appStub.globalData.pendingCase
+  assert.equal(saved.id, item.id)
+  assert.equal(saved.feedback, item.feedback)
+  assert.equal(saved.source, item.source)
+})
+
+it('点已在的卡片但 id 找不到时不跳转（防御性）', async () => {
+  install(normalHandler)
+  const page = mount()
+  page.onLoad()
+  await sleep(5)
+
+  page.onOpenCase({ currentTarget: { dataset: { id: '不存在的 id' } } })
+  assert.equal(navigateCalls.length, 0)
 })

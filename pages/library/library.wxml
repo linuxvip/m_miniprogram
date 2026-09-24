@@ -81,7 +81,7 @@
 
   <!-- 命例卡片（T-3.1 / T-3.3）-->
   <view class="lib-list" wx:if="{{!loading && !error && cases.length}}">
-    <view class="lib-card" wx:for="{{cases}}" wx:key="id">
+    <view class="lib-card" wx:for="{{cases}}" wx:key="id" data-id="{{item.id}}" bindtap="onOpenCase">
       <view class="lib-card-top">
         <view class="lib-avatar {{item.genderCls}}">{{item.genderLabel}}</view>
         <view class="lib-card-meta">
@@ -102,9 +102,15 @@
 
       <view class="lib-feedback">
         <text class="lib-feedback-text {{item.expanded ? '' : 'lib-clamp'}}">{{item.feedback}}</text>
-        <view class="lib-expand" data-id="{{item.id}}" catchtap="onToggleExpand">
-          <text class="lib-expand-text">{{item.expanded ? '收起' : '展开'}}</text>
-          <ui-icon name="{{item.expanded ? 'chevron-up' : 'chevron-down'}}" color="#b45309" size="{{22}}" />
+        <view class="lib-feedback-bar">
+          <view class="lib-expand" data-id="{{item.id}}" catchtap="onToggleExpand">
+            <text class="lib-expand-text">{{item.expanded ? '收起' : '展开'}}</text>
+            <ui-icon name="{{item.expanded ? 'chevron-up' : 'chevron-down'}}" color="#b45309" size="{{22}}" />
+          </view>
+          <view class="lib-open">
+            <text class="lib-open-text">查看命盘</text>
+            <ui-icon name="chevron-right" color="#b39b7d" size="{{22}}" />
+          </view>
         </view>
       </view>
     </view>

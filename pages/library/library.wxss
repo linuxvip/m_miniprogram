@@ -397,6 +397,26 @@
   overflow: hidden;
 }
 
+.lib-feedback-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.lib-open {
+  display: flex;
+  align-items: center;
+  gap: 2rpx;
+  flex: none;
+}
+
+.lib-open-text {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--brand);
+}
+
 .lib-expand {
   align-self: flex-start;
   display: flex;

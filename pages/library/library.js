@@ -15,7 +15,7 @@ import { fetchCases, fetchCaseSources } from '../../utils/casesApi.js'
 import {
   ALL, GENDER_OPTIONS, PILLAR_KEYS, PILLAR_LABELS,
   defaultFilters, buildCaseQuery, pageFromNext, normalizeCase, filtersActive,
-  appendCases, labelPickerRows, sourcePickerRow, pickerValueAt
+  appendCases, labelPickerRows, sourcePickerRow, pickerValueAt, chartQueryForCase
 } from '../../utils/cases.js'
 
 const DEBOUNCE_MS = 400
@@ -23,6 +23,11 @@ const DEBOUNCE_MS = 400
 const STATE_KEY = 'libraryState'
 /** 超过这个条数就只存筛选、不存列表（重新拉第一页），避免把内存和恢复逻辑都撑大 */
 const MAX_PERSISTED_CASES = 60
+/**
+ * 点开的那条命例（T-3.4）。反馈可能有几百字，塞进 navigateTo 的 url 不保险，
+ * 所以放 globalData，URL 里只带 id（cid），命盘页凭它认回来。
+ */
+const PENDING_CASE_KEY = 'pendingCase'
 
 const pillarRowsOf = (filters) =>
   PILLAR_KEYS.map((key) => ({ key, label: PILLAR_LABELS[key], value: (filters.pillars && filters.pillars[key]) || '' }))
@@ -243,9 +248,24 @@ Page({
 
   /* ---------------- 卡片 ---------------- */
 
+  /** 点卡片 → 跳命盘页（DIRECT 四柱模式），并把反馈与来源一并带过去（T-3.4 / T-1.15） */
+  onOpenCase(e) {
+    const id = String(e.currentTarget.dataset.id)
+    const item = this.data.cases.filter((entry) => entry.id === id)[0]
+    if (!item) return
+
+    const app = appOf()
+    if (app && app.globalData) {
+      app.globalData[PENDING_CASE_KEY] = { id: item.id, feedback: item.feedback, source: item.source }
+    }
+    wx.navigateTo({
+      url: `/pages/chart/chart?${chartQueryForCase(item)}&cid=${encodeURIComponent(item.id)}`
+    })
+  },
+
   onToggleExpand(e) {
     const id = e.currentTarget.dataset.id
-    const index = this.data.cases.findIndex((item) => item.id === id)
+    const index = this.data.cases.findIndex((entry) => entry.id === id)
     if (index < 0) return
     this.setData({ [`cases[${index}].expanded`]: !this.data.cases[index].expanded })
     this.persist()
