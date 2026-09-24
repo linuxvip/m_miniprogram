@@ -1,1 +1,9 @@
 /* 命例库专有样式（待实现） */
+
+/* 卡片标题行：图标 + 标题 */
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-1);
+}

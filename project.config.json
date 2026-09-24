@@ -40,7 +40,12 @@
         "value": "node_modules"
       }
     ],
-    "include": []
+    "include": [
+      {
+        "type": "folder",
+        "value": "assets"
+      }
+    ]
   },
   "editorSetting": {}
 }

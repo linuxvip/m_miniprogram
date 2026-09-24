@@ -1,6 +1,9 @@
 <view class="page">
   <view class="card">
-    <text class="title">命例库</text>
+    <view class="card-head">
+      <ui-icon name="library" color="#b39b7d" size="{{44}}" />
+      <text class="title">命例库</text>
+    </view>
     <text class="desc">古籍与实务命例，可按四柱、来源、标签检索（下一步实现）</text>
   </view>
 
