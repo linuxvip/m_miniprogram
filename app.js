@@ -1,4 +1,5 @@
 import { DEFAULT_CONFIG, loadSiteConfig } from './utils/config.js'
+import { restore } from './utils/auth.js'
 
 App({
   globalData: {
@@ -14,6 +15,12 @@ App({
     this._configWaiters = []
     // 不 await：配置只影响站名 / 页脚这类文案，不能挡住首屏
     this.siteConfigPromise = this._loadSiteConfig()
+    // 登录态恢复（T-5.12）：本地有 token 就换一次用户资料，失败当未登录处理。
+    // 同样不 await 也不能抛出去 —— 恢复登录态失败不该让小程序起不来。
+    this.authPromise = restore().catch((err) => {
+      console.warn('[app] 登录态恢复失败，按未登录处理', err)
+      return null
+    })
   },
 
   _loadSiteConfig() {

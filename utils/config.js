@@ -28,6 +28,21 @@ export const DEFAULT_CONFIG = {
 
 export const CONFIG_KEYS = Object.keys(DEFAULT_CONFIG)
 
+/**
+ * 站点静态资源的基地址。
+ * 后端的 avatar_url / qrcode_url 存的是**相对路径**（网页端挂在同源下就能用），
+ * 小程序里必须拼成绝对 https 地址，image 组件才加载得出来。
+ */
+export const ASSET_BASE = 'https://www.minghaishiyi.cn'
+
+/** 相对路径 → 绝对地址；已经是绝对地址（或 data:）就原样返回 */
+export const assetUrl = (path) => {
+  const raw = typeof path === 'string' ? path.trim() : ''
+  if (!raw) return ''
+  if (/^(https?:)?\/\//.test(raw) || raw.indexOf('data:') === 0) return raw
+  return ASSET_BASE + (raw.charAt(0) === '/' ? raw : '/' + raw)
+}
+
 /** 只保留白名单字段，空值 / 非字符串一律退回默认值 */
 export const pickConfig = (raw) => {
   const out = { ...DEFAULT_CONFIG }

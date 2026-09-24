@@ -3,8 +3,9 @@
 `www.minghaishiyi.cn` 的微信小程序版本。定位是**传统文化与历法工具**：
 四柱排盘、黄历、命例库（文章暂缓）。
 
-当前进度：**排盘主链路、黄历页、命例库、基础设施（请求层 / 站点配置 / 本地存储）已完工**，
-并有单测 + 界面 e2e 兜底；微信登录尚未开始。
+当前进度：**排盘、黄历、命例库、微信登录与「我的」页都已完工**（5 个页面全部实现），
+有单测 + 界面 e2e 兜底。唯一未上线的一条是微信登录的**服务端配置**：
+后端 `.env` 里要有 `WX_APPSECRET` 并跑一次 `migrate`（见「微信登录」一节）。
 逐项进度见 [`docs/工作任务清单.md`](docs/工作任务清单.md)。
 
 ## 与网页端的关系
@@ -48,7 +49,7 @@ pages/
   chart/                        命盘页（基本盘 / 专业细盘 / 大运流年 / 神煞 / 五行 / 命例反馈 / 分享）
   huangli/                      黄历（四柱信息栏 / 月历网格 / 时辰地支条 / 年·月弹层，零接口）
   library/                      命例库（筛选面板 / 卡片列表 / 内联展开 / 加载更多 / 三态）
-  profile/                      我的（占位页）
+  profile/                      我的（登录 / 我的案例 / 我的收藏 / 我的设置 / 作者·关于）
 components/
   datetime-sheet/               日期时间弹层（公历 / 农历 / 四柱 三态）
   ui-icon/                      lucide 图标（SVG data URI，全局注册）
@@ -62,6 +63,10 @@ utils/
   config.js                     站点配置（1 小时缓存 / 白名单字段 / 失败降级）
   cases.js                      命例库纯逻辑（标签字典与解析 / 查询参数 / 分页游标 / 视图模型）
   casesApi.js                   命例库接口封装（列表 + 来源，公开接口不带 token）
+  auth.js                       登录态（wx.login 静默登录 / 并发去重 / 启动恢复 / 退出）
+  userApi.js                    「我的」相关接口封装（资料 / 偏好 / 我的案例 / 收藏）
+  profile.js                    「我的」页纯逻辑（字段映射 / 设置行翻译 / 收藏分类与跳转）
+  account.js                    保存案例与收藏的纯逻辑（请求体拼装 / 收藏 id 查表）
   areaData.js                   省→市 + 经纬度（由网页端 areaData.ts 生成）
   chartRoute.js                 排盘参数 ↔ URL query（分享用）
   preferences.js                排盘偏好本地记忆
@@ -82,7 +87,10 @@ tests/
   config.test.js                站点配置测试（白名单字段 / 缓存过期 / 降级）
   cases.test.js                 命例库纯逻辑测试（标签解析与去重 / 查询参数 / 分页 / 去重追加）
   library-page.test.js          命例库页面测试（假接口把整页跑起来：请求序号 / 防抖 / 重试 / 状态保持）
-  chart-page.test.js            命盘页测试（命例反馈的认领与分享路径）
+  chart-page.test.js            命盘页测试（命例反馈的认领 / 分享路径 / 保存案例）
+  auth.test.js                  登录态测试（并发登录去重 / 401 重放 / 退出 / 恢复失败不清 token）
+  profile.test.js               「我的」页纯逻辑测试（字段映射 / 脏数据 / 设置行 / 收藏分类）
+  account.test.js               保存案例与收藏的纯逻辑测试（四柱完整性 / 请求体 / 收藏查表）
 docs/
   需求梳理与迁移方案.md          需求、方案、风险、实施记录
   工作任务清单.md                逐项任务、进度与变更记录
@@ -108,6 +116,35 @@ node scripts/gen-bazi-golden.js             # 确认改动符合预期时，更�
 
 更新快照等于把当前行为固化为基准，**只在确认改动正确时使用**，并在 commit message 里说明原因。
 
+## 微信登录
+
+登录走 **微信静默登录**，用户不需要填任何表单：
+
+```
+点需要登录的动作（收藏 / 保存案例 / 进「我的」）
+  → utils/auth.js 的 ensureLogin()
+  → wx.login() 拿一次性 code
+  → POST https://www.minghaishiyi.cn/api/auth/wechat/  （code → 服务端换 openid → 建号）
+  → 拿到与网页端同一套 JWT，之后所有请求自动带 Authorization
+```
+
+几个刻意的设计：
+
+- **冷启动不自动建号**：`app.js` 只 `restore()`（本地有 token 才换一次资料）。无条件静默登录
+  会给每个路过的访客都建一个空账号，除了脏数据没有收益。
+- **同一时刻只发一次 `wx.login`**：code 是一次性的，连点两次收藏不能拿同一个 code 发两次请求。
+- **`refresh` 与 `access` 一起存**：服务端开了 `ROTATE_REFRESH_TOKENS`，漏存新的 refresh
+  第二次刷新必定失败（网页端就有这个 bug，小程序端按正确方式存）。
+- 用户数据与网页端**共用同一张表**，两边的收藏与「我的案例」是同一批数据。
+
+### 服务端要配什么
+
+| 项 | 位置 | 说明 |
+| --- | --- | --- |
+| `WX_APPID` | 后端 `.env` | `wx990ba3cc14bef05d` |
+| `WX_APPSECRET` | 后端 `.env` | **不要进仓库**。缺失时 `/auth/wechat/` 返回 503，其余功能不受影响 |
+| 数据库迁移 | 部署时 | `python manage.py migrate`（新增 `userapi/migrations/0002_*`，给 `UserProfile` 加 `openid` / `unionid`） |
+
 ## 一些约束
 
 - 主包上限 2 MB。`lunar-typescript` 压缩后约 325 KB（gzip 98 KB），占约 16%，
@@ -122,7 +159,8 @@ node scripts/gen-bazi-golden.js             # 确认改动符合预期时，更�
 
 ```bash
 npm install          # 安装依赖并补齐 npm 入口
-npm test             # 算法 / 历法 / 黄历 / 弹层 / 分享参数 / 请求层 / 站点配置 / 命例库（117 项，约 1.3 秒）
+npm test             # 算法 / 历法 / 黄历 / 弹层 / 分享参数 / 请求层 / 站点配置 / 命例库 /
+                     # 登录态 / 我的页 / 保存案例与收藏（168 项，约 1.5 秒）
 npm run gen:golden   # 重新生成算法快照
 
 # 界面 e2e 与截图：要先给开发者工具开自动化通道

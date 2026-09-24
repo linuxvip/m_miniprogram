@@ -15,6 +15,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { PAGE_SIZE } from '../utils/cases.js'
 import { setGetImpl, SOURCES_PATH as SOURCES } from '../utils/casesApi.js'
+import { setUserApiImpl, USER_PATHS } from '../utils/userApi.js'
+import { setAuthImpl, __resetAuthState, login, logout } from '../utils/auth.js'
+import { __resetMemory } from '../utils/storage.js'
 
 let pageConfig = null
 let appStub = { globalData: {} }
@@ -24,10 +27,14 @@ globalThis.Page = (config) => {
   pageConfig = config
 }
 globalThis.getApp = () => appStub
+const toasts = []
 globalThis.wx = {
   stopPullDownRefresh() {},
   navigateTo(options) {
     navigateCalls.push(options)
+  },
+  showToast(options) {
+    toasts.push(options && options.title)
   }
 }
 
@@ -95,7 +102,11 @@ const normalHandler = (path, options) => {
 
 const teardown = () => {
   setGetImpl(null)
+  setUserApiImpl(null)
+  __resetAuthState()
+  __resetMemory()
   appStub = { globalData: {} }
+  toasts.length = 0
 }
 
 /**
@@ -109,7 +120,11 @@ const it = (name, fn) =>
     t.after(teardown)
     appStub = { globalData: {} }
     navigateCalls.length = 0
+    toasts.length = 0
     setGetImpl(null)
+    setUserApiImpl(null)
+    __resetAuthState()
+    __resetMemory()
     await fn(t)
   })
 
@@ -425,4 +440,151 @@ it('点已在的卡片但 id 找不到时不跳转（防御性）', async () => 
 
   page.onOpenCase({ currentTarget: { dataset: { id: '不存在的 id' } } })
   assert.equal(navigateCalls.length, 0)
+})
+
+/* ==================== 卡片收藏（T-3.6） ==================== */
+
+/**
+ * 为什么值得单独测：
+ *  - 一页 12 张卡片，照网页端「每张卡查一次 status」就是 12 个请求，
+ *    这里改成一次列表请求，容易写成「只有第一张卡亮」；
+ *  - 未登录点心形要**静默登录后再收藏**，不能只弹个登录提示就完事；
+ *  - 退出登录后不能把上一位用户的收藏留在卡片上（这台手机可能换人用）。
+ */
+const loginStub = () =>
+  setAuthImpl({
+    wxLogin: () => Promise.resolve('code-1'),
+    wechatLogin: () => Promise.resolve({ tokens: { access: 'a', refresh: 'r' }, user: { id: 1 } })
+  })
+
+/** 假的收藏接口；toggleResult 是 toggle 接口的返回，fail 让它整个失败 */
+const installUserApi = ({ favorites = [], toggleResult = { favorited: true, id: 9 }, fail = false } = {}) => {
+  const calls = []
+  setUserApiImpl({
+    get: (path, options) => {
+      calls.push({ method: 'get', path, options })
+      return Promise.resolve(path === USER_PATHS.favorites ? favorites : [])
+    },
+    post: (path, data) => {
+      calls.push({ method: 'post', path, data })
+      if (fail) return Promise.reject(new Error('操作失败'))
+      return Promise.resolve(path === USER_PATHS.favoriteToggle ? toggleResult : {})
+    }
+  })
+  return calls
+}
+
+const favoriteCalls = (calls) => calls.filter((c) => c.path === USER_PATHS.favorites)
+
+it('登录后只拉一次收藏列表，命例卡片按 object_id 点亮', async () => {
+  install(normalHandler)
+  const calls = installUserApi({ favorites: [{ id: 7, object_id: 1 }, { id: 8, object_id: 3 }] })
+  const page = mount()
+  page.onLoad()
+  await sleep(5)
+
+  loginStub()
+  await login()
+  await sleep(5)
+
+  const gets = favoriteCalls(calls).filter((c) => c.method === 'get')
+  assert.equal(gets.length, 1, '12 张卡片不能变成 12 个请求')
+  assert.equal(gets[0].options.params.object_type, 'destiny_case')
+  assert.deepEqual(
+    page.data.cases.slice(0, 4).map((c) => c.favorited),
+    [true, false, true, false]
+  )
+})
+
+it('冷启动（onLoad + onShow）不会把收藏列表拉两遍', async () => {
+  install(normalHandler)
+  const calls = installUserApi({ favorites: [{ id: 7, object_id: 1 }] })
+  loginStub()
+  await login()
+
+  const page = mount()
+  page.onLoad()
+  page.onShow()
+  await sleep(5)
+
+  assert.equal(favoriteCalls(calls).length, 1)
+  assert.equal(page.data.cases[0].favorited, true)
+})
+
+it('未登录点心形：先静默登录，再收藏，标记与文案一起更新', async () => {
+  install(normalHandler)
+  const calls = installUserApi({ toggleResult: { favorited: true, id: 9 } })
+  const page = mount()
+  page.onLoad()
+  await sleep(5)
+
+  loginStub()
+  page.onToggleFavorite({ currentTarget: { dataset: { id: '5' } } })
+  await sleep(10)
+
+  const post = calls.filter((c) => c.method === 'post')[0]
+  assert.equal(post.path, USER_PATHS.favoriteToggle)
+  assert.deepEqual(post.data, { object_type: 'destiny_case', object_id: 5 })
+  assert.equal(page.data.cases[4].favorited, true)
+  assert.deepEqual(toasts, ['已收藏'])
+
+  // 连点两次只发一个请求
+  page.onToggleFavorite({ currentTarget: { dataset: { id: '5' } } })
+  assert.equal(calls.filter((c) => c.method === 'post').length, 1)
+})
+
+it('已收藏的点一下取消：按服务端返回的 favorited 关掉心形', async () => {
+  install(normalHandler)
+  const calls = installUserApi({
+    favorites: [{ id: 7, object_id: 2 }],
+    toggleResult: { favorited: false, id: null }
+  })
+  const page = mount()
+  page.onLoad()
+  await sleep(5)
+
+  loginStub()
+  await login()
+  await sleep(5)
+  assert.equal(page.data.cases[1].favorited, true)
+
+  page.onToggleFavorite({ currentTarget: { dataset: { id: '2' } } })
+  await sleep(10)
+  assert.equal(page.data.cases[1].favorited, false)
+  assert.deepEqual(toasts, ['已取消收藏'])
+})
+
+it('退出登录后清掉卡片上的收藏标记', async () => {
+  install(normalHandler)
+  installUserApi({ favorites: [{ id: 7, object_id: 1 }] })
+  const page = mount()
+  page.onLoad()
+  await sleep(5)
+
+  loginStub()
+  await login()
+  await sleep(5)
+  assert.equal(page.data.cases[0].favorited, true)
+
+  await logout()
+  await sleep(5)
+  assert.equal(page.data.cases[0].favorited, false, '换人用这台手机时不该看到上一位的收藏')
+})
+
+it('收藏接口失败：卡片标记不变，但要给出提示', async () => {
+  install(normalHandler)
+  const calls = installUserApi({ fail: true })
+  const page = mount()
+  page.onLoad()
+  await sleep(5)
+
+  loginStub()
+  await login()
+  await sleep(5)
+
+  page.onToggleFavorite({ currentTarget: { dataset: { id: '4' } } })
+  await sleep(10)
+  assert.equal(calls.filter((c) => c.method === 'post').length, 1)
+  assert.equal(page.data.cases[3].favorited, false)
+  assert.deepEqual(toasts, ['操作失败'], '失败不能静默，用户会以为收藏成功了')
 })

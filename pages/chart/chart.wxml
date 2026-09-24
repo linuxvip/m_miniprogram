@@ -153,9 +153,11 @@
     <text class="case-text">{{caseFeedback}}</text>
   </view>
 
-  <!-- 结果页操作区（T-1.17 / T-1.18）-->
+  <!-- 结果页操作区（T-1.16 / T-1.17 / T-1.18）-->
   <view class="actions">
     <button class="btn ghost act-btn" bindtap="onBack">返回</button>
+    <button class="btn ghost act-btn {{saveState === 'saved' ? 'act-saved' : ''}}"
+      bindtap="onSaveCase">{{saveLabel}}</button>
     <button class="btn primary act-btn" open-type="share">分享命盘</button>
   </view>
 </view>

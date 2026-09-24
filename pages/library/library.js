@@ -12,6 +12,11 @@
  *  3. **加载更多去重**：连点两次不产生重复卡片（`appendCases` 按 id 去重，配合 `appending` 闸门）。
  */
 import { fetchCases, fetchCaseSources } from '../../utils/casesApi.js'
+import { fetchFavorites, toggleFavorite, FAVORITE_TYPES } from '../../utils/userApi.js'
+import { onAuthChange, ensureLogin, isLoggedIn, currentUser } from '../../utils/auth.js'
+import {
+  favoriteIdsOf, withFavorite, markFavorites, favoriteToast
+} from '../../utils/account.js'
 import {
   ALL, GENDER_OPTIONS, PILLAR_KEYS, PILLAR_LABELS,
   defaultFilters, buildCaseQuery, pageFromNext, normalizeCase, filtersActive,
@@ -31,6 +36,9 @@ const PENDING_CASE_KEY = 'pendingCase'
 
 const pillarRowsOf = (filters) =>
   PILLAR_KEYS.map((key) => ({ key, label: PILLAR_LABELS[key], value: (filters.pillars && filters.pillars[key]) || '' }))
+
+/** 登录用户的稳定标识，用来判断「订阅回调有没有真的换人」 */
+const userKey = (user) => (user && user.id !== undefined && user.id !== null ? String(user.id) : '')
 
 const appOf = () => {
   try {
@@ -71,6 +79,18 @@ Page({
   onLoad() {
     this._seq = 0
     this._sources = []
+    // 收藏标记（T-3.6）。收藏关系在服务端，本地只缓存「哪些 id 已收藏」，
+    // 登录态一变（登录 / 退出）就重拉一次，别让上一任用户的收藏留在卡片上。
+    this._favIds = {}
+    // onAuthChange 订阅时会立刻回调一次，那一次交给紧随其后的 onShow 去做，
+    // 否则冷启动会连发两次收藏请求。只有「真的换了登录用户」才在这里同步。
+    this._favUserId = userKey(currentUser())
+    this._unsubAuth = onAuthChange((user) => {
+      const key = userKey(user)
+      if (key === this._favUserId) return
+      this._favUserId = key
+      this.syncFavorites()
+    })
 
     const saved = readState()
     if (saved && saved.filters) {
@@ -101,6 +121,12 @@ Page({
 
   onUnload() {
     if (this._timer) clearTimeout(this._timer)
+    if (this._unsubAuth) this._unsubAuth()
+  },
+
+  /** 从「我的」页取消收藏后回到这里，标记也要跟着变 */
+  onShow() {
+    this.syncFavorites()
   },
 
   onPullDownRefresh() {
@@ -124,6 +150,60 @@ Page({
       })
   },
 
+  /* ---------------- 收藏（T-3.6） ---------------- */
+
+  /**
+   * 拉一次「命例类」收藏，作为卡片心形的数据源。
+   *
+   * 为什么不照网页端那样每张卡片调一次 `favorites/status/`：一页 12 条就是 12 个请求。
+   * 这里只要一次列表请求（`?object_type=destiny_case`）就能拿到全部已收藏 id。
+   */
+  syncFavorites() {
+    if (!isLoggedIn()) {
+      this._favIds = {}
+      this.markFavoriteFlags()
+      return Promise.resolve()
+    }
+    const seq = (this._favSeq = (this._favSeq || 0) + 1)
+    return fetchFavorites(FAVORITE_TYPES.destinyCase)
+      .then((list) => {
+        if (seq !== this._favSeq) return // 登录态又变了，这次结果作废
+        this._favIds = favoriteIdsOf(list)
+        this.markFavoriteFlags()
+      })
+      .catch(() => {
+        // 收藏拉不到不影响看命例，卡片保持未收藏态
+      })
+  },
+
+  markFavoriteFlags() {
+    const cases = markFavorites(this.data.cases, this._favIds)
+    const changed = cases.some((item, i) => !!item.favorited !== !!this.data.cases[i].favorited)
+    if (changed) this.setData({ cases })
+  },
+
+  /** 点心形：没登录先静默登录，再切换收藏 */
+  onToggleFavorite(e) {
+    const id = String(e.currentTarget.dataset.id)
+    if (!id || this._favBusy) return
+    this._favBusy = true
+    const done = () => {
+      this._favBusy = false
+    }
+    ensureLogin()
+      .then(() => toggleFavorite(FAVORITE_TYPES.destinyCase, Number(id)))
+      .then((res) => {
+        const favorited = !!(res && res.favorited)
+        this._favIds = withFavorite(this._favIds, id, favorited)
+        this.markFavoriteFlags()
+        wx.showToast({ title: favoriteToast(favorited), icon: 'none' })
+      })
+      .catch((err) => {
+        wx.showToast({ title: (err && err.message) || '操作失败，请稍后重试', icon: 'none' })
+      })
+      .then(done, done)
+  },
+
   /** 拉第 page 页；append=true 表示「加载更多」 */
   load(page = 1, append = false) {
     const seq = ++this._seq
@@ -134,7 +214,8 @@ Page({
       .then((payload) => {
         if (seq !== this._seq) return null // 已被更新的筛选覆盖，丢弃
         const fresh = ((payload && payload.results) || []).map(normalizeCase)
-        const cases = append ? appendCases(this.data.cases, fresh) : fresh
+        const merged = append ? appendCases(this.data.cases, fresh) : fresh
+        const cases = markFavorites(merged, this._favIds)
         const nextPage = pageFromNext(payload && payload.next)
         this.setData({
           cases,

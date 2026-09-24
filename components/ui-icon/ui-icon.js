@@ -20,7 +20,9 @@ Component({
     /** 尺寸，单位 rpx */
     size: { type: Number, value: DEFAULT_SIZE },
     /** 线宽，与网页端 strokeWidth 对齐 */
-    stroke: { type: Number, value: DEFAULT_STROKE }
+    stroke: { type: Number, value: DEFAULT_STROKE },
+    /** 是否用描边色填充（收藏心形的实心态） */
+    fill: { type: Boolean, value: false }
   },
 
   data: {
@@ -28,12 +30,12 @@ Component({
   },
 
   observers: {
-    'name, color, size, stroke': function (name, color, size, stroke) {
+    'name, color, size, stroke, fill': function (name, color, size, stroke, fill) {
       if (!name) {
         this.setData({ styleStr: 'display:none' })
         return
       }
-      this.setData({ styleStr: iconStyle(name, color, { size, stroke }) })
+      this.setData({ styleStr: iconStyle(name, color, { size, stroke, fill }) })
     }
   }
 })

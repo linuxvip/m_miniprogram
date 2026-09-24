@@ -52,7 +52,9 @@ export const ICONS = {
   "clock": [["circle",{"cx":"12","cy":"12","r":"10"}],["polyline",{"points":"12 6 12 12 16 14"}]],
   "info": [["circle",{"cx":"12","cy":"12","r":"10"}],["path",{"d":"M12 16v-4"}],["path",{"d":"M12 8h.01"}]],
   "refresh-cw": [["path",{"d":"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"}],["path",{"d":"M21 3v5h-5"}],["path",{"d":"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"}],["path",{"d":"M8 16H3v5"}]],
-  "star": [["path",{"d":"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"}]]
+  "star": [["path",{"d":"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"}]],
+  "log-out": [["path",{"d":"M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"}],["polyline",{"points":"16 17 21 12 16 7"}],["line",{"x1":"21","x2":"9","y1":"12","y2":"12"}]],
+  "qr-code": [["rect",{"width":"5","height":"5","x":"3","y":"3","rx":"1"}],["rect",{"width":"5","height":"5","x":"16","y":"3","rx":"1"}],["rect",{"width":"5","height":"5","x":"3","y":"16","rx":"1"}],["path",{"d":"M21 16h-3a2 2 0 0 0-2 2v3"}],["path",{"d":"M21 21v.01"}],["path",{"d":"M12 7v3a2 2 0 0 1-2 2H7"}],["path",{"d":"M3 12h.01"}],["path",{"d":"M12 3h.01"}],["path",{"d":"M12 16v.01"}],["path",{"d":"M16 12h1"}],["path",{"d":"M21 12v.01"}],["path",{"d":"M12 21v-1"}]],
 }
 
 /** 默认色 stone-500 */
@@ -70,8 +72,8 @@ const renderNode = ([tag, attrs]) => {
   return '<' + tag + ' ' + a + '/>'
 }
 
-const buildSvg = (name, color, stroke) =>
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"' +
+const buildSvg = (name, color, stroke, fill) =>
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="' + fill + '"' +
   ' stroke="' + color + '" stroke-width="' + stroke + '"' +
   ' stroke-linecap="round" stroke-linejoin="round">' +
   ICONS[name].map(renderNode).join('') +
@@ -98,6 +100,9 @@ const encodeSvg = (svg) =>
 
 /**
  * 生成可直接放进 CSS 的 data URI
+ *
+ * `opts.fill` 为真时用描边色填充图形 —— 收藏心形的「已收藏」态需要实心
+ * （与网页端 lucide 的 `fill={favorited ? 'currentColor' : 'none'}` 一致）。
  */
 export const iconUri = (name, color = DEFAULT_COLOR, opts = {}) => {
   if (!hasIcon(name)) {
@@ -105,14 +110,15 @@ export const iconUri = (name, color = DEFAULT_COLOR, opts = {}) => {
     return ''
   }
   const stroke = opts.stroke === undefined ? DEFAULT_STROKE : opts.stroke
-  return 'data:image/svg+xml,' + encodeSvg(buildSvg(name, color, stroke))
+  const fill = opts.fill ? color : 'none'
+  return 'data:image/svg+xml,' + encodeSvg(buildSvg(name, color, stroke, fill))
 }
 
 /**
  * 生成图标容器的完整 style 串
  * @param {string} name   图标名，见 ICONS
  * @param {string} color  描边色
- * @param {object} opts   { size: rpx, stroke: 线宽 }
+ * @param {object} opts   { size: rpx, stroke: 线宽, fill: 是否实心 }
  */
 export const iconStyle = (name, color = DEFAULT_COLOR, opts = {}) => {
   const uri = iconUri(name, color, opts)

@@ -14,6 +14,14 @@ import { Gender, CalendarType } from '../../utils/bazi/types.js'
 import { elementTextClass } from '../../utils/theme.js'
 import { parseChartQuery, chartShareTitle } from '../../utils/chartRoute.js'
 import { caseContextFor } from '../../utils/cases.js'
+import { ensureLogin } from '../../utils/auth.js'
+import { createUserCase } from '../../utils/userApi.js'
+import { canSaveCase, missingPillarsLabel, saveCasePayload } from '../../utils/account.js'
+
+/** 保存按钮的三个文案（T-1.16）：与网页端 SaveCaseBar 一致 */
+const SAVE_IDLE = '保存案例'
+const SAVE_BUSY = '保存中...'
+const SAVE_DONE = '已保存'
 
 /** 神煞按柱归位（与网页端 pillarPos 一致） */
 const SHENSHA_POS = [
@@ -134,7 +142,10 @@ Page({
     caseFeedback: '',
     caseSource: '',
     zodiac: '',
-    constellation: ''
+    constellation: '',
+    // 保存到我的案例（T-1.16）
+    saveState: 'idle',
+    saveLabel: SAVE_IDLE
   },
 
   onLoad(options) {
@@ -167,6 +178,8 @@ Page({
 
   build(query) {
     const input = parseChartQuery(query)
+    // 保存案例要用它做 input_snapshot（T-1.16），分享参数自带全部输入，直接复用
+    this._input = input
     const gender = input.gender === 'MALE' ? Gender.MALE : Gender.FEMALE
     const type = input.type === 'LUNAR'
       ? CalendarType.LUNAR
@@ -338,6 +351,47 @@ Page({
     const year = Number(e.currentTarget.dataset.year)
     const idx = Number(e.currentTarget.dataset.idx)
     this.setData({ selYear: year, xuSui: this._birthYear ? year - this._birthYear + 1 : 0 }, () => this.refreshGrid(idx))
+  },
+
+  /**
+   * 保存到我的案例（T-1.16 / T-1.17）
+   *
+   * 与网页端 SaveCaseBar 的差别：那边没登录会弹注册框，这边直接走微信登录
+   * （`ensureLogin`）—— 小程序里登录是静默的，不该让用户先填一遍表单。
+   * 服务端按「性别 + 四柱」去重，同一条再存一次返回 `created: false`（更新备注），
+   * 所以文案要按返回值区分，不能一律说「已保存」。
+   */
+  onSaveCase() {
+    if (this.data.saveState !== 'idle') return
+    const chart = this._chart
+    if (!chart) return
+    if (!canSaveCase(chart)) {
+      wx.showToast({
+        title: `${missingPillarsLabel(chart)}没有算出干支，无法保存`,
+        icon: 'none'
+      })
+      return
+    }
+
+    const payload = saveCasePayload(chart, this._input, this.data.caseFeedback)
+    this.setData({ saveState: 'saving', saveLabel: SAVE_BUSY })
+
+    const failed = (err) => {
+      this.setData({ saveState: 'idle', saveLabel: SAVE_IDLE })
+      wx.showToast({ title: (err && err.message) || '保存失败，请稍后重试', icon: 'none' })
+    }
+
+    ensureLogin()
+      .then(() => createUserCase(payload))
+      .then((res) => {
+        const updated = res && res.created === false
+        this.setData({ saveState: 'saved', saveLabel: SAVE_DONE })
+        wx.showToast({
+          title: updated ? '已在你的案例中，已更新信息' : '已保存到我的案例',
+          icon: 'none'
+        })
+      })
+      .catch(failed)
   },
 
   onBack() {

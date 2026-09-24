@@ -379,7 +379,19 @@
 .act-btn {
   flex: 1;
   margin: 0;
+  /* 三个按钮并排，字号要压一档，否则「保存案例」会换行 */
+  font-size: 26rpx;
+  letter-spacing: 0;
+  padding-left: 0;
+  padding-right: 0;
 }
+
+/* 保存成功态：与网页端 SaveCaseBar 的 emerald 配色一致 */
+.act-saved {
+  background: #ecfdf5;
+  color: #059669;
+}
+
 
 /* ---------------- 命例反馈（T-1.15 / T-3.4） ---------------- */
 

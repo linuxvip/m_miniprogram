@@ -1,33 +1,232 @@
-<view class="page">
-  <view class="card">
-    <view class="card-head">
-      <ui-icon name="user" color="#b39b7d" size="{{44}}" />
-      <text class="title">我的</text>
+<view class="page pf-page">
+
+  <!-- 用户卡（T-5.8）：已登录 / 未登录两种形态 -->
+  <view class="pf-hero">
+    <view class="pf-hero-main">
+      <view class="pf-avatar">{{initial}}</view>
+      <view class="pf-hero-info">
+        <view class="pf-name-row">
+          <text class="pf-name">{{name}}</text>
+          <view class="pf-edit" wx:if="{{loggedIn}}" bindtap="onEditNickname">
+            <ui-icon name="sliders-horizontal" color="#a8a29e" size="{{22}}" />
+          </view>
+        </view>
+        <text class="pf-sub">{{loggedIn ? '微信登录 · 与网页端同一账号' : '登录后可同步收藏、我的案例与排盘偏好'}}</text>
+      </view>
     </view>
-    <text class="desc">微信登录、我的案例、收藏与排盘偏好（下一步实现）</text>
+
+    <view class="pf-hero-actions">
+      <view class="pf-login {{busy ? 'pf-btn-busy' : ''}}" wx:if="{{!loggedIn}}" bindtap="onLogin">
+        <ui-icon name="user" color="#ffffff" size="{{28}}" />
+        <text class="pf-login-text">{{busy ? '登录中…' : '微信一键登录'}}</text>
+      </view>
+      <view class="pf-logout" wx:else bindtap="onLogout">
+        <ui-icon name="log-out" color="#78716c" size="{{26}}" />
+        <text class="pf-logout-text">退出登录</text>
+      </view>
+    </view>
   </view>
 
-  <view class="card">
-    <text class="section-title">待实现内容</text>
-    <view class="row">
-      <text class="row-key">登录</text>
-      <text class="row-val">微信一键登录（需后端新增接口）</text>
-    </view>
-    <view class="row">
-      <text class="row-key">我的案例</text>
-      <text class="row-val">列表、回填排盘、删除</text>
-    </view>
-    <view class="row">
-      <text class="row-key">我的收藏</text>
-      <text class="row-val">命例 / 文章 / 我的案例 三类</text>
-    </view>
-    <view class="row">
-      <text class="row-key">我的设置</text>
-      <text class="row-val">6 项排盘偏好，改完即时同步</text>
-    </view>
-    <view class="row">
-      <text class="row-key">作者·关于</text>
-      <text class="row-val">站名、寄语、公众号与个人微信二维码</text>
+  <!-- 四个子栏目（T-5.12）-->
+  <view class="pf-tabs">
+    <view class="pf-tab {{tab === item.key ? 'pf-tab-on' : ''}}" wx:for="{{tabs}}" wx:key="key"
+      data-tab="{{item.key}}" bindtap="onSwitchTab">
+      <ui-icon name="{{item.icon}}" color="{{tab === item.key ? '#2b2320' : '#a8a29e'}}" size="{{26}}" />
+      <text class="pf-tab-text">{{item.label}}</text>
     </view>
   </view>
+
+  <!-- ============ 我的案例（T-5.9）============ -->
+  <block wx:if="{{tab === 'CASES'}}">
+    <view class="pf-empty" wx:if="{{!loggedIn}}">
+      <ui-icon name="layout-grid" color="#d6d3d1" size="{{72}}" />
+      <text class="pf-empty-title">登录后查看我的案例</text>
+      <text class="pf-empty-desc">排盘结果页的「保存到我的案例」，会出现在这里</text>
+    </view>
+
+    <view class="pf-skeleton" wx:elif="{{casesState === 'loading'}}">
+      <view class="pf-sk" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+    </view>
+
+    <view class="pf-empty" wx:elif="{{casesState === 'error'}}">
+      <ui-icon name="triangle-alert" color="#e11d48" size="{{64}}" />
+      <text class="pf-empty-title">加载失败</text>
+      <text class="pf-empty-desc">{{casesError}}</text>
+    </view>
+
+    <view class="pf-empty" wx:elif="{{!cases.length}}">
+      <ui-icon name="layout-grid" color="#d6d3d1" size="{{72}}" />
+      <text class="pf-empty-title">还没有保存过案例</text>
+      <text class="pf-empty-desc">在命盘页点「保存到我的案例」即可留存</text>
+    </view>
+
+    <view class="pf-list" wx:else>
+      <view class="pf-item" wx:for="{{cases}}" wx:key="id" data-id="{{item.id}}" bindtap="onOpenCase">
+        <view class="pf-item-badge {{item.badgeCls}}">{{item.badge}}</view>
+        <view class="pf-item-body">
+          <view class="pf-item-head">
+            <text class="pf-item-title">{{item.displayName}}</text>
+            <text class="pf-item-day">{{item.day}}</text>
+          </view>
+          <text class="pf-item-sub">{{item.summary}}</text>
+          <text class="pf-item-notes" wx:if="{{item.hasNotes}}">{{item.notes}}</text>
+        </view>
+        <view class="pf-item-del" data-id="{{item.id}}" catchtap="onDeleteCase">
+          <ui-icon name="trash-2" color="#a8a29e" size="{{26}}" />
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ============ 我的收藏（T-5.10）============ -->
+  <block wx:elif="{{tab === 'FAVORITES'}}">
+    <view class="pf-empty" wx:if="{{!loggedIn}}">
+      <ui-icon name="heart" color="#d6d3d1" size="{{72}}" />
+      <text class="pf-empty-title">登录后查看收藏</text>
+      <text class="pf-empty-desc">命例库的收藏会出现在这里</text>
+    </view>
+
+    <view class="pf-skeleton" wx:elif="{{favState === 'loading'}}">
+      <view class="pf-sk" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+    </view>
+
+    <view class="pf-empty" wx:elif="{{favState === 'error'}}">
+      <ui-icon name="triangle-alert" color="#e11d48" size="{{64}}" />
+      <text class="pf-empty-title">加载失败</text>
+      <text class="pf-empty-desc">{{favError}}</text>
+    </view>
+
+    <view class="pf-empty" wx:elif="{{!favorites.length}}">
+      <ui-icon name="heart" color="#d6d3d1" size="{{72}}" />
+      <text class="pf-empty-title">还没有收藏</text>
+      <text class="pf-empty-desc">在命例卡片上点心形即可收藏</text>
+    </view>
+
+    <view class="pf-list" wx:else>
+      <view class="pf-item" wx:for="{{favorites}}" wx:key="id" data-id="{{item.id}}" bindtap="onOpenFavorite">
+        <view class="pf-item-badge pf-badge-kind {{item.kindCls}}">{{item.kindLabel}}</view>
+        <view class="pf-item-body">
+          <view class="pf-item-head">
+            <text class="pf-item-title">{{item.title}}</text>
+            <text class="pf-item-day">{{item.day}}</text>
+          </view>
+          <text class="pf-item-sub" wx:if="{{item.hasDetail}}">{{item.detail}}</text>
+        </view>
+        <view class="pf-item-del" data-id="{{item.id}}" catchtap="onDeleteFavorite">
+          <ui-icon name="heart" color="#b91c1c" size="{{26}}" />
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ============ 我的设置（T-5.11 / T-5.13）============ -->
+  <block wx:elif="{{tab === 'SETTINGS'}}">
+    <view class="pf-card">
+      <view class="pf-card-head">
+        <text class="pf-card-title">常用排盘设置</text>
+        <text class="pf-sync {{syncText === '已同步' ? 'pf-sync-ok' : ''}}">{{syncText}}</text>
+      </view>
+      <text class="pf-card-desc">改动立刻在排盘页生效；登录后自动同步到云端</text>
+
+      <block wx:for="{{settings}}" wx:key="key">
+        <view class="pf-row" wx:if="{{item.kind !== 'input' || item.show}}">
+          <view class="pf-row-left">
+            <text class="pf-row-key">{{item.title}}</text>
+            <text class="pf-row-desc">{{item.desc}}</text>
+          </view>
+
+          <view class="pf-seg" wx:if="{{item.kind === 'segment'}}">
+            <view class="pf-seg-item {{item.value === opt.v ? 'pf-seg-on' : ''}}"
+              wx:for="{{item.options}}" wx:for-item="opt" wx:key="v"
+              data-key="{{item.key}}" data-value="{{opt.v}}" bindtap="onSettingTap">{{opt.l}}</view>
+          </view>
+
+          <view class="pf-switch {{item.on ? 'pf-switch-on' : ''}}"
+            wx:elif="{{item.kind === 'toggle' || item.kind === 'sect'}}"
+            data-key="{{item.key}}" bindtap="onSettingToggle">
+            <view class="pf-knob"></view>
+          </view>
+
+          <input class="pf-input" wx:elif="{{item.kind === 'input'}}" type="digit"
+            value="{{item.value}}" placeholder="{{item.placeholder}}" placeholder-class="pf-ph"
+            bindinput="onLongitudeInput" />
+
+          <picker wx:else mode="selector" range="{{item.range}}" value="{{item.index}}" bindchange="onTimezoneChange">
+            <view class="pf-picker">
+              <text class="pf-picker-text">{{item.label}}</text>
+              <ui-icon name="chevron-down" color="#a8a29e" size="{{24}}" />
+            </view>
+          </picker>
+        </view>
+      </block>
+    </view>
+  </block>
+
+  <!-- ============ 作者·关于（T-5.14）============ -->
+  <block wx:else>
+    <view class="pf-card pf-about">
+      <view class="pf-about-avatar">
+        <image wx:if="{{avatarUrl && !avatarFailed}}" class="pf-about-img" src="{{avatarUrl}}" mode="aspectFill" binderror="onAvatarError" />
+        <text class="pf-about-initial" wx:else>拾</text>
+      </view>
+      <text class="pf-about-name">{{siteName}}</text>
+      <view class="pf-about-line"></view>
+      <view class="pf-about-poem">
+        <text>“承古启新，拾易海之遗珠；</text>
+        <text>去伪存真，筑学理之门径。”</text>
+      </view>
+    </view>
+
+    <view class="pf-card">
+      <view class="pf-qr-row">
+        <view class="pf-qr">
+          <view class="pf-qr-title">
+            <ui-icon name="qr-code" color="#b45309" size="{{24}}" />
+            <text class="pf-qr-label pf-qr-label-amber">关注公众号</text>
+          </view>
+          <image class="pf-qr-img" wx:if="{{qrUrl}}" src="{{qrUrl}}" mode="aspectFit" show-menu-by-longpress />
+          <view class="pf-qr-ph" wx:else></view>
+          <text class="pf-qr-hint">长按图片可保存</text>
+          <text class="pf-qr-sub">教程 · 案例 · 考据</text>
+        </view>
+        <view class="pf-qr">
+          <view class="pf-qr-title">
+            <ui-icon name="user" color="#047857" size="{{24}}" />
+            <text class="pf-qr-label pf-qr-label-green">个人微信</text>
+          </view>
+          <image class="pf-qr-img" wx:if="{{wxQrUrl}}" src="{{wxQrUrl}}" mode="aspectFit" show-menu-by-longpress />
+          <view class="pf-qr-ph" wx:else></view>
+          <text class="pf-qr-hint">长按图片可保存</text>
+          <text class="pf-qr-sub">命理交流 · 深度咨询</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="pf-blocks">
+      <view class="pf-block">
+        <view class="pf-block-icon pf-block-amber"><ui-icon name="book-open" color="#b45309" size="{{30}}" /></view>
+        <text class="pf-block-title">体系教程</text>
+        <text class="pf-block-desc">底层逻辑拆解</text>
+      </view>
+      <view class="pf-block">
+        <view class="pf-block-icon pf-block-green"><ui-icon name="search" color="#047857" size="{{30}}" /></view>
+        <text class="pf-block-title">深度案例</text>
+        <text class="pf-block-desc">实战抽丝剥茧</text>
+      </view>
+      <view class="pf-block">
+        <view class="pf-block-icon pf-block-sky"><ui-icon name="info" color="#0369a1" size="{{30}}" /></view>
+        <text class="pf-block-title">源流考据</text>
+        <text class="pf-block-desc">古籍去伪存真</text>
+      </view>
+      <view class="pf-block">
+        <view class="pf-block-icon pf-block-rose"><ui-icon name="share" color="#be123c" size="{{30}}" /></view>
+        <text class="pf-block-title">同道切磋</text>
+        <text class="pf-block-desc">高质量学研群</text>
+      </view>
+    </view>
+
+    <view class="pf-footer" bindtap="onCopyFooter">
+      <text class="pf-footer-text">{{footerText}}</text>
+    </view>
+  </block>
 </view>

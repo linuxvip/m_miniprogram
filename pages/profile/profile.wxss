@@ -1,9 +1,622 @@
-/* 我的页面专有样式（待实现） */
+/* =========================================================================
+ * 我的（T-5.8 ~ T-5.15）
+ * 色值与间距沿用 app.wxss 的设计变量，不写死色值。
+ * ========================================================================= */
 
-/* 卡片标题行：图标 + 标题 */
-.card-head {
+.pf-page {
+  padding: 24rpx 24rpx 40rpx;
+}
+
+/* ---------------- 用户卡 ---------------- */
+
+.pf-hero {
+  background: #ffffff;
+  border: 1rpx solid var(--stone-200);
+  border-radius: 40rpx;
+  padding: 32rpx 28rpx;
+  box-shadow: 0 2rpx 12rpx rgba(41, 37, 36, 0.04);
+}
+
+.pf-hero-main {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-1);
+  gap: 22rpx;
+}
+
+.pf-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+  background: var(--ink);
+  color: #ffffff;
+  font-size: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.pf-hero-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.pf-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pf-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: var(--stone-800);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 300rpx;
+}
+
+.pf-edit {
+  padding: 6rpx;
+}
+
+.pf-sub {
+  font-size: 22rpx;
+  color: var(--stone-400);
+  line-height: 1.5;
+}
+
+.pf-hero-actions {
+  margin-top: 26rpx;
+}
+
+.pf-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  height: 84rpx;
+  border-radius: 26rpx;
+  background: var(--ink);
+}
+
+.pf-btn-busy {
+  opacity: 0.6;
+}
+
+.pf-login-text {
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.pf-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  height: 80rpx;
+  border-radius: 26rpx;
+  background: var(--stone-100);
+}
+
+.pf-logout-text {
+  color: var(--stone-600);
+  font-size: 26rpx;
+  font-weight: 700;
+}
+
+/* ---------------- 子栏目 ---------------- */
+
+.pf-tabs {
+  display: flex;
+  gap: 10rpx;
+  margin: 24rpx 0 20rpx;
+}
+
+.pf-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 18rpx 6rpx;
+  border-radius: 26rpx;
+  background: #ffffff;
+  border: 1rpx solid var(--stone-200);
+}
+
+.pf-tab-on {
+  border-color: var(--brand);
+  background: var(--stone-50);
+}
+
+.pf-tab-text {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--stone-400);
+}
+
+.pf-tab-on .pf-tab-text {
+  color: var(--stone-800);
+}
+
+/* ---------------- 列表 ---------------- */
+
+.pf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.pf-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: #ffffff;
+  border: 1rpx solid var(--stone-200);
+  border-radius: 32rpx;
+  padding: 24rpx 22rpx;
+}
+
+.pf-item-badge {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 700;
+  flex: none;
+}
+
+.pf-badge-male {
+  background: var(--wx-jin-bg);
+  color: var(--wx-jin);
+}
+
+.pf-badge-female {
+  background: var(--wx-huo-bg);
+  color: var(--wx-huo);
+}
+
+.pf-badge-kind {
+  width: 76rpx;
+  font-size: 20rpx;
+}
+
+.pf-fav-case {
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+
+.pf-fav-article {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.pf-fav-mine {
+  background: var(--wx-shui-bg);
+  color: var(--wx-shui);
+}
+
+.pf-item-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.pf-item-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.pf-item-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--stone-800);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pf-item-day {
+  font-size: 20rpx;
+  color: var(--stone-300);
+  flex: none;
+}
+
+.pf-item-sub {
+  font-size: 24rpx;
+  color: var(--stone-500);
+  letter-spacing: 2rpx;
+}
+
+.pf-item-notes {
+  font-size: 22rpx;
+  color: var(--stone-400);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pf-item-del {
+  padding: 12rpx 4rpx 12rpx 12rpx;
+  flex: none;
+}
+
+/* ---------------- 空态 / 骨架 ---------------- */
+
+.pf-empty {
+  background: #ffffff;
+  border: 2rpx dashed var(--stone-200);
+  border-radius: 32rpx;
+  padding: 64rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.pf-empty-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--stone-500);
+}
+
+.pf-empty-desc {
+  font-size: 22rpx;
+  color: var(--stone-300);
+  text-align: center;
+}
+
+.pf-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.pf-sk {
+  height: 140rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(90deg, #f5f5f4 25%, #ececea 37%, #f5f5f4 63%);
+  background-size: 400% 100%;
+  animation: pf-sk 1.4s ease infinite;
+}
+
+@keyframes pf-sk {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* ---------------- 设置卡 ---------------- */
+
+.pf-card {
+  background: #ffffff;
+  border: 1rpx solid var(--stone-200);
+  border-radius: 40rpx;
+  padding: 30rpx 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.pf-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.pf-card-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--stone-700);
+}
+
+.pf-sync {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--stone-400);
+  background: var(--stone-100);
+  border-radius: 999rpx;
+  padding: 6rpx 16rpx;
+}
+
+.pf-sync-ok {
+  color: var(--success);
+  background: var(--success-bg);
+}
+
+.pf-card-desc {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 20rpx;
+  color: var(--stone-300);
+  line-height: 1.6;
+}
+
+.pf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+
+.pf-row-left {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.pf-row-key {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--stone-700);
+}
+
+.pf-row-desc {
+  font-size: 19rpx;
+  color: var(--stone-300);
+}
+
+.pf-seg {
+  display: flex;
+  background: var(--stone-100);
+  border-radius: 20rpx;
+  padding: 6rpx;
+  flex: none;
+}
+
+.pf-seg-item {
+  padding: 10rpx 22rpx;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--stone-400);
+}
+
+.pf-seg-on {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+.pf-switch {
+  width: 88rpx;
+  height: 48rpx;
+  border-radius: 999rpx;
+  background: var(--stone-300);
+  padding: 4rpx;
+  flex: none;
+  transition: background 0.2s;
+}
+
+.pf-switch-on {
+  background: var(--brand);
+}
+
+.pf-knob {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 2rpx 6rpx rgba(41, 37, 36, 0.15);
+  transition: transform 0.2s;
+}
+
+.pf-switch-on .pf-knob {
+  transform: translateX(40rpx);
+}
+
+.pf-input {
+  width: 200rpx;
+  flex: none;
+  text-align: right;
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--stone-700);
+  background: var(--stone-100);
+  border-radius: 18rpx;
+  padding: 14rpx 20rpx;
+}
+
+.pf-ph {
+  color: var(--stone-300);
+  font-weight: 700;
+}
+
+.pf-picker {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: var(--stone-100);
+  border-radius: 18rpx;
+  padding: 14rpx 18rpx;
+  flex: none;
+  max-width: 300rpx;
+}
+
+.pf-picker-text {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--stone-600);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------------- 关于 ---------------- */
+
+.pf-about {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 32rpx;
+}
+
+.pf-about-avatar {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  background: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2rpx solid var(--stone-200);
+}
+
+.pf-about-img {
+  width: 100%;
+  height: 100%;
+}
+
+.pf-about-initial {
+  color: #ffffff;
+  font-size: 64rpx;
+}
+
+.pf-about-name {
+  margin-top: 22rpx;
+  font-size: 38rpx;
+  font-weight: 700;
+  color: var(--stone-800);
+  letter-spacing: 6rpx;
+}
+
+.pf-about-line {
+  width: 96rpx;
+  height: 2rpx;
+  background: var(--stone-200);
+  margin: 26rpx 0;
+}
+
+.pf-about-poem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pf-about-poem text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--stone-700);
+  line-height: 1.8;
+}
+
+.pf-qr-row {
+  display: flex;
+  gap: 20rpx;
+}
+
+.pf-qr {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.pf-qr-title {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.pf-qr-label {
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.pf-qr-label-amber { color: var(--amber-700); }
+.pf-qr-label-green { color: var(--success); }
+
+.pf-qr-img,
+.pf-qr-ph {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 24rpx;
+  border: 1rpx solid var(--stone-200);
+  background: var(--stone-50);
+  margin: 10rpx 0;
+}
+
+.pf-qr-hint {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--stone-600);
+}
+
+.pf-qr-sub {
+  font-size: 19rpx;
+  color: var(--stone-300);
+}
+
+.pf-blocks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.pf-block {
+  width: calc((100% - 16rpx) / 2);
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1rpx solid var(--stone-100);
+  border-radius: 26rpx;
+  padding: 22rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.pf-block-icon {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pf-block-amber { background: var(--amber-50); }
+.pf-block-green { background: var(--success-bg); }
+.pf-block-sky { background: var(--wx-shui-bg); }
+.pf-block-rose { background: var(--wx-huo-bg); }
+
+.pf-block-title {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--stone-800);
+}
+
+.pf-block-desc {
+  font-size: 19rpx;
+  color: var(--stone-400);
+}
+
+.pf-footer {
+  padding: 40rpx 0 16rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.pf-footer-text {
+  font-size: 20rpx;
+  color: var(--stone-300);
+  letter-spacing: 2rpx;
 }

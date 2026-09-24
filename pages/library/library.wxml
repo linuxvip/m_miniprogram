@@ -91,6 +91,10 @@
             <text class="lib-tag-more" wx:if="{{item.moreTags}}">+{{item.moreTags}}</text>
           </view>
         </view>
+        <!-- 收藏（T-3.6）：catchtap 挡掉冒泡，别让点收藏变成「打开命盘」 -->
+        <view class="lib-fav {{item.favorited ? 'lib-fav-on' : ''}}" data-id="{{item.id}}" catchtap="onToggleFavorite">
+          <ui-icon name="heart" color="{{item.favorited ? '#f43f5e' : '#d6d3d1'}}" size="{{34}}" fill="{{item.favorited}}" />
+        </view>
       </view>
 
       <view class="lib-pillars">
