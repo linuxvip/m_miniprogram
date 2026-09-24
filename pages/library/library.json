@@ -1,4 +1,5 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "命例库"
+  "navigationBarTitleText": "命例库",
+  "enablePullDownRefresh": true,
+  "usingComponents": {}
 }

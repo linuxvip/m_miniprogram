@@ -3,8 +3,8 @@
 `www.minghaishiyi.cn` 的微信小程序版本。定位是**传统文化与历法工具**：
 四柱排盘、黄历、命例库（文章暂缓）。
 
-当前进度：**排盘主链路、黄历页、基础设施（请求层 / 站点配置 / 本地存储）已完工**，
-并有单测 + 界面 e2e 兜底；命例库、微信登录尚未开始。
+当前进度：**排盘主链路、黄历页、命例库、基础设施（请求层 / 站点配置 / 本地存储）已完工**，
+并有单测 + 界面 e2e 兜底；微信登录尚未开始。
 逐项进度见 [`docs/工作任务清单.md`](docs/工作任务清单.md)。
 
 ## 与网页端的关系
@@ -47,7 +47,8 @@ pages/
   paipan/                       排盘输入页（姓名 / 性别 / 模式 / 日期 / 地点 / 高级设置 / 即时局）
   chart/                        命盘页（基本盘 / 专业细盘 / 大运流年 / 神煞 / 五行 / 分享）
   huangli/                      黄历（四柱信息栏 / 月历网格 / 时辰地支条 / 年·月弹层，零接口）
-  library/ profile/             命例库 / 我的（占位页）
+  library/                      命例库（筛选面板 / 卡片列表 / 内联展开 / 加载更多 / 三态）
+  profile/                      我的（占位页）
 components/
   datetime-sheet/               日期时间弹层（公历 / 农历 / 四柱 三态）
   ui-icon/                      lucide 图标（SVG data URI，全局注册）
@@ -59,6 +60,8 @@ utils/
   request.js                    请求层（baseURL / token 注入 / 401 刷新 / 错误分类）
   storage.js                    本地存储封装（统一 key 前缀，无 wx 环境降级内存）
   config.js                     站点配置（1 小时缓存 / 白名单字段 / 失败降级）
+  cases.js                      命例库纯逻辑（标签字典与解析 / 查询参数 / 分页游标 / 视图模型）
+  casesApi.js                   命例库接口封装（列表 + 来源，公开接口不带 token）
   areaData.js                   省→市 + 经纬度（由网页端 areaData.ts 生成）
   chartRoute.js                 排盘参数 ↔ URL query（分享用）
   preferences.js                排盘偏好本地记忆
@@ -77,6 +80,8 @@ tests/
   chartRoute.test.js            分享参数编解码测试
   request.test.js               请求层测试（401 刷新 / 并发去重 / 错误分类）
   config.test.js                站点配置测试（白名单字段 / 缓存过期 / 降级）
+  cases.test.js                 命例库纯逻辑测试（标签解析与去重 / 查询参数 / 分页 / 去重追加）
+  library-page.test.js          命例库页面测试（假接口把整页跑起来：请求序号 / 防抖 / 重试 / 状态保持）
 docs/
   需求梳理与迁移方案.md          需求、方案、风险、实施记录
   工作任务清单.md                逐项任务、进度与变更记录
@@ -116,7 +121,7 @@ node scripts/gen-bazi-golden.js             # 确认改动符合预期时，更�
 
 ```bash
 npm install          # 安装依赖并补齐 npm 入口
-npm test             # 算法 / 历法 / 黄历 / 弹层 / 分享参数 / 请求层 / 站点配置（76 项，0.2 秒）
+npm test             # 算法 / 历法 / 黄历 / 弹层 / 分享参数 / 请求层 / 站点配置 / 命例库（109 项，约 1.3 秒）
 npm run gen:golden   # 重新生成算法快照
 
 # 界面 e2e 与截图：要先给开发者工具开自动化通道

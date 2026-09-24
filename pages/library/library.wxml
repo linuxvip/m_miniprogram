@@ -1,29 +1,121 @@
-<view class="page">
-  <view class="card">
-    <view class="card-head">
-      <ui-icon name="library" color="#b39b7d" size="{{44}}" />
-      <text class="title">命例库</text>
+<view class="page lib-page">
+  <!-- 筛选面板（T-3.2）-->
+  <view class="lib-panel">
+    <view class="lib-genders">
+      <view class="segmented seg-300 lib-seg">
+        <view class="segmented-item {{filters.gender === item.value ? 'active' : ''}}"
+          wx:for="{{genderOptions}}" wx:key="value" data-gender="{{item.value}}" bindtap="onGenderTap">{{item.label}}</view>
+      </view>
     </view>
-    <text class="desc">古籍与实务命例，可按四柱、来源、标签检索（下一步实现）</text>
+
+    <view class="lib-row">
+      <picker class="lib-picker" mode="selector" range="{{sourceRow.range}}" value="{{sourceRow.index}}"
+        data-kind="source" bindchange="onPickerChange">
+        <view class="lib-picker-box {{sourceRow.active ? 'lib-picker-on' : ''}}">
+          <text class="lib-picker-text">{{sourceRow.range[sourceRow.index]}}</text>
+          <ui-icon name="chevron-down" color="#a8a29e" size="{{26}}" />
+        </view>
+      </picker>
+      <view class="lib-search">
+        <ui-icon name="search" color="#d6d3d1" size="{{30}}" />
+        <input class="lib-search-input" value="{{filters.keyword}}" placeholder="关键词（职业细分等）"
+          placeholder-class="lib-ph" confirm-type="search" bindinput="onKeywordInput" />
+      </view>
+    </view>
+
+    <view class="lib-labels">
+      <picker wx:for="{{labelRows}}" wx:key="key" class="lib-label-picker" mode="selector"
+        range="{{item.range}}" value="{{item.index}}" data-kind="label" data-key="{{item.key}}" bindchange="onPickerChange">
+        <view class="lib-label-box {{item.active ? 'lib-label-on' : ''}}">
+          <text class="lib-label-key">{{item.label}}</text>
+          <text class="lib-label-val">{{item.range[item.index]}}</text>
+          <ui-icon name="chevron-down" color="#a8a29e" size="{{22}}" />
+        </view>
+      </picker>
+    </view>
+
+    <view class="lib-pillar-filter">
+      <view class="lib-pillar-field" wx:for="{{pillarRows}}" wx:key="key">
+        <text class="lib-pillar-label">{{item.label}}</text>
+        <input class="lib-pillar-input" value="{{item.value}}" placeholder="全部" placeholder-class="lib-ph"
+          maxlength="6" data-key="{{item.key}}" bindinput="onPillarInput" />
+      </view>
+    </view>
+
+    <view class="lib-stats">
+      <view class="lib-stats-left">
+        <ui-icon name="layout-grid" color="#d97706" size="{{24}}" />
+        <text class="lib-stats-text">{{loading ? '正在检索命例...' : '匹配到 ' + count + ' 条命例'}}</text>
+      </view>
+      <view class="lib-reset" wx:if="{{isFiltered}}" bindtap="onReset">
+        <ui-icon name="trash-2" color="#a8a29e" size="{{22}}" />
+        <text class="lib-reset-text">清空筛选条件</text>
+      </view>
+    </view>
   </view>
 
-  <view class="card">
-    <text class="section-title">待实现内容</text>
-    <view class="row">
-      <text class="row-key">列表与分页</text>
-      <text class="row-val">每页 12 条，底部「加载更多」</text>
+  <!-- 骨架屏（T-3.7）-->
+  <view class="lib-skeleton" wx:if="{{loading}}">
+    <view class="lib-sk-card" wx:for="{{skeletonRows}}" wx:key="*this">
+      <view class="lib-sk-line lib-sk-line-1"></view>
+      <view class="lib-sk-line lib-sk-line-2"></view>
+      <view class="lib-sk-line lib-sk-line-3"></view>
     </view>
-    <view class="row">
-      <text class="row-key">筛选</text>
-      <text class="row-val">性别、来源、四柱、5 个枚举标签、职业细分关键词</text>
+  </view>
+
+  <!-- 失败重试（T-3.7）-->
+  <view class="lib-state" wx:if="{{!loading && error}}">
+    <ui-icon name="triangle-alert" color="#e11d48" size="{{72}}" />
+    <text class="lib-state-title lib-state-title-error">网络连接失败</text>
+    <text class="lib-state-desc">{{error}}</text>
+    <view class="lib-state-btn" bindtap="onRetry">重新加载</view>
+  </view>
+
+  <!-- 空结果（T-3.7）-->
+  <view class="lib-state" wx:if="{{!loading && !error && !cases.length}}">
+    <ui-icon name="library" color="#d6d3d1" size="{{72}}" />
+    <text class="lib-state-title">系统中当前无匹配记录</text>
+    <text class="lib-state-desc">换个条件，或试试「清空筛选条件」</text>
+    <view class="lib-state-btn" wx:if="{{isFiltered}}" bindtap="onReset">清空筛选条件</view>
+  </view>
+
+  <!-- 命例卡片（T-3.1 / T-3.3）-->
+  <view class="lib-list" wx:if="{{!loading && !error && cases.length}}">
+    <view class="lib-card" wx:for="{{cases}}" wx:key="id">
+      <view class="lib-card-top">
+        <view class="lib-avatar {{item.genderCls}}">{{item.genderLabel}}</view>
+        <view class="lib-card-meta">
+          <text class="lib-source">{{item.source}}</text>
+          <view class="lib-tags">
+            <text class="lib-tag" wx:for="{{item.shownTags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+            <text class="lib-tag-more" wx:if="{{item.moreTags}}">+{{item.moreTags}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="lib-pillars">
+        <view class="lib-pillar" wx:for="{{item.pillars}}" wx:for-item="p" wx:key="key">
+          <text class="lib-char {{p.ganCls}}">{{p.gan}}</text>
+          <text class="lib-char {{p.zhiCls}}">{{p.zhi}}</text>
+        </view>
+      </view>
+
+      <view class="lib-feedback">
+        <text class="lib-feedback-text {{item.expanded ? '' : 'lib-clamp'}}">{{item.feedback}}</text>
+        <view class="lib-expand" data-id="{{item.id}}" catchtap="onToggleExpand">
+          <text class="lib-expand-text">{{item.expanded ? '收起' : '展开'}}</text>
+          <ui-icon name="{{item.expanded ? 'chevron-up' : 'chevron-down'}}" color="#b45309" size="{{22}}" />
+        </view>
+      </view>
     </view>
-    <view class="row">
-      <text class="row-key">反馈</text>
-      <text class="row-val">卡片内联展开，无独立详情页</text>
+
+    <!-- 加载更多（T-3.1）-->
+    <view class="lib-more" wx:if="{{hasMore}}" bindtap="onLoadMore">
+      <ui-icon name="{{appending ? 'loader' : 'chevron-down'}}" color="#78716c" size="{{28}}" />
+      <text class="lib-more-text">{{appending ? '加载中...' : '加载更多命例'}}</text>
     </view>
-    <view class="row">
-      <text class="row-key">跳转排盘</text>
-      <text class="row-val">点击命例按四柱回填排盘</text>
+    <view class="lib-end" wx:else>
+      <text class="lib-end-text">已到底部 · 共 {{count}} 条</text>
     </view>
   </view>
 </view>
