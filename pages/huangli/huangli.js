@@ -138,7 +138,5 @@ Page({
     this.setData({ showMonth: false }, () => {
       this.refresh(withYearMonth(this.data.input, this.data.input.year, month))
     })
-  },
-
-  noop() {}
+  }
 })
