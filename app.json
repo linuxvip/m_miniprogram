@@ -46,6 +46,7 @@
     ]
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "usingComponents": {
     "ui-icon": "/components/ui-icon/ui-icon"
   },
